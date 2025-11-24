@@ -38,3 +38,6 @@ next-env.d.ts
 # scripts (optional - remove if you want to track SQL scripts)
 # scripts/*.sql
 
+# Documentation files that might contain sensitive info
+.git-remote-setup.md
+
