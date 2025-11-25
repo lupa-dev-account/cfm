@@ -87,3 +87,8 @@ export interface AnalyticsEvent {
   metadata: Record<string, any>;
   created_at: string;
 }
+
+export interface EmployeeWithCard extends EmployeeCard {
+  name?: string;
+  title?: string;
+}
