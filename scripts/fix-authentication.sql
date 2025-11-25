@@ -26,22 +26,22 @@ ORDER BY u.role, u.email;
 -- Go to: Authentication → Users → Copy the UUID for each user
 
 -- Update Super Admin
--- Replace 'AUTH_UUID_HERE' with actual UUID from Supabase Auth
+-- Replace 'YOUR_AUTH_UUID_HERE' with actual UUID from Supabase Auth Dashboard
 UPDATE users
-SET id = '4cb06658-7033-4be4-b8e3-0fe4d7ec888f'::uuid
-WHERE email = 'admin@cfm.co.mz'
+SET id = 'YOUR_SUPER_ADMIN_AUTH_UUID_HERE'::uuid
+WHERE email = 'your-admin@example.com'
 RETURNING id, email, role;
 
 -- Update Company Admin
 UPDATE users
-SET id = '2188be2b-f26a-4b5f-ad39-8ca4a73d17a2'::uuid  -- Replace with Auth UUID for compadmin@cfm.co.mz
-WHERE email = 'compadmin@cfm.co.mz'
+SET id = 'YOUR_COMPANY_ADMIN_AUTH_UUID_HERE'::uuid
+WHERE email = 'your-company-admin@example.com'
 RETURNING id, email, role;
 
 -- Update Employee
 UPDATE users
-SET id = '2d33a610-a160-43f7-b438-dedc7c9d7602'::uuid  -- Replace with Auth UUID for agostinho@cfm.co.mz
-WHERE email = 'agostinho@cfm.co.mz'
+SET id = 'YOUR_EMPLOYEE_AUTH_UUID_HERE'::uuid
+WHERE email = 'your-employee@example.com'
 RETURNING id, email, role;
 
 -- ============================================
@@ -52,13 +52,13 @@ RETURNING id, email, role;
 -- Super Admin
 INSERT INTO users (id, company_id, email, role, first_name, last_name, title)
 VALUES (
-  '4cb06658-7033-4be4-b8e3-0fe4d7ec888f'::uuid,  -- From Supabase Auth
+  'YOUR_SUPER_ADMIN_AUTH_UUID_HERE'::uuid,  -- From Supabase Auth Dashboard
   NULL,
-  'admin@cfm.co.mz',
+  'your-admin@example.com',
   'super_admin',
-  'Super',
-  'Admin',
-  'Platform Administrator'
+  'First',
+  'Last',
+  'Administrator'
 )
 ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
@@ -70,12 +70,12 @@ ON CONFLICT (id) DO UPDATE SET
 -- Company Admin
 INSERT INTO users (id, company_id, email, role, first_name, last_name, title)
 VALUES (
-  '2188be2b-f26a-4b5f-ad39-8ca4a73d17a2'::uuid,  -- From Supabase Auth
-  (SELECT id FROM companies WHERE slug = 'cfm'),
-  'compadmin@cfm.co.mz',
+  'YOUR_COMPANY_ADMIN_AUTH_UUID_HERE'::uuid,  -- From Supabase Auth Dashboard
+  (SELECT id FROM companies WHERE slug = 'your-company-slug'),
+  'your-company-admin@example.com',
   'company_admin',
-  'Company',
-  'Admin',
+  'First',
+  'Last',
   'Company Administrator'
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -89,13 +89,13 @@ ON CONFLICT (id) DO UPDATE SET
 -- Employee
 INSERT INTO users (id, company_id, email, role, first_name, last_name, title)
 VALUES (
-  '2d33a610-a160-43f7-b438-dedc7c9d7602'::uuid,  -- From Supabase Auth
-  (SELECT id FROM companies WHERE slug = 'cfm'),
-  'agostinho@cfm.co.mz',
+  'YOUR_EMPLOYEE_AUTH_UUID_HERE'::uuid,  -- From Supabase Auth Dashboard
+  (SELECT id FROM companies WHERE slug = 'your-company-slug'),
+  'your-employee@example.com',
   'employee',
-  'Agostinho F.',
-  'Langa Jr',
-  'Chairman of the Board of Directors'
+  'First',
+  'Last',
+  'Job Title'
 )
 ON CONFLICT (id) DO UPDATE SET
   company_id = EXCLUDED.company_id,
@@ -120,6 +120,7 @@ SELECT
 FROM users u
 LEFT JOIN companies c ON c.id = u.company_id
 ORDER BY u.role, u.email;
+
 
 
 
