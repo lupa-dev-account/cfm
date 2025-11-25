@@ -40,7 +40,7 @@ loadEnvFile();
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://YOUR_PROJECT_REF.supabase.co';
 // Note: SERVICE_ROLE_KEY should be added to .env.local
 // Get it from: Supabase Dashboard → Settings → API → service_role key
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY_HERE';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY_HERE';
 
 // User UUIDs (from your fix-authentication.sql)
 const USERS = [
