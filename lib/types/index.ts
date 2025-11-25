@@ -22,6 +22,9 @@ export interface Company {
   logo_url: string | null;
   footer_text: string | null;
   website_url: string | null;
+  linkedin_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
   created_at: string;
 }
 
@@ -36,16 +39,16 @@ export interface CompanyService {
 }
 
 export interface ContactLinks {
-  phone: string; // REQUIRED
-  whatsapp?: string; // OPTIONAL
-  email: string; // REQUIRED
-  website?: string; // OPTIONAL (company website)
+  phone: string; // REQUIRED - Employee personal phone
+  whatsapp?: string; // OPTIONAL - Employee WhatsApp
+  email: string; // REQUIRED - Employee email
+  website?: string; // OPTIONAL - Employee personal website (if any)
 }
 
 export interface SocialLinks {
-  facebook?: string; // OPTIONAL
-  linkedin: string; // REQUIRED
-  instagram?: string; // OPTIONAL
+  facebook?: string; // OPTIONAL - DEPRECATED: Use Company.facebook_url instead
+  linkedin: string; // REQUIRED - DEPRECATED: Use Company.linkedin_url instead
+  instagram?: string; // OPTIONAL - DEPRECATED: Use Company.instagram_url instead
 }
 
 export interface BusinessHours {
@@ -91,4 +94,6 @@ export interface AnalyticsEvent {
 export interface EmployeeWithCard extends EmployeeCard {
   name?: string;
   title?: string;
+  company?: Company;
+  services?: CompanyService[];
 }

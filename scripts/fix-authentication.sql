@@ -121,3 +121,6 @@ FROM users u
 LEFT JOIN companies c ON c.id = u.company_id
 ORDER BY u.role, u.email;
 
+
+
+

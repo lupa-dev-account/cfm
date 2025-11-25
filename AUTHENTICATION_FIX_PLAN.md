@@ -53,3 +53,6 @@ Follow instructions in `scripts/update-passwords.md`
 - Company Admin: `compadmin@cfm.co.mz` / `compadmin123`
 - Employee: `agostinho@cfm.co.mz` / `agostinho123`
 
+
+
+

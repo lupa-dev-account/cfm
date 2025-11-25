@@ -11,7 +11,7 @@ import { EmployeeForm } from "@/app/components/dashboard/employee-form";
 import { EmployeeList } from "@/app/components/dashboard/employee-list";
 import { getEmployeesByCompany } from "@/lib/services/employees";
 import type { EmployeeWithCard, EmployeeCard } from "@/lib/types";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Settings } from "lucide-react";
 
 export default function CompanyDashboard() {
   const router = useRouter();
@@ -44,6 +44,7 @@ export default function CompanyDashboard() {
     if (user?.company_id) {
       loadEmployees();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.company_id]);
 
   const loadEmployees = async () => {
@@ -121,6 +122,14 @@ export default function CompanyDashboard() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Company Admin Dashboard</h1>
           <div className="flex items-center gap-4">
+            <Button
+              onClick={() => router.push("/dashboard/company/settings")}
+              variant="outline"
+              size="sm"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Company Settings
+            </Button>
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button onClick={handleLogout} variant="outline">
               Logout

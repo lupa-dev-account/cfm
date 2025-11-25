@@ -48,3 +48,6 @@ curl -X PUT "${SUPABASE_URL}/auth/v1/admin/users/${EMPLOYEE_UUID}" \
 
 echo "Done! Check the HTTP status codes above (200 = success)"
 
+
+
+

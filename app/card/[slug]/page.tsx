@@ -39,6 +39,7 @@ export default function EmployeeCardPage() {
       }
 
       try {
+        // Fetch employee card
         const { data, error: fetchError } = await supabase
           .from("employee_cards")
           .select("*")
@@ -58,12 +59,39 @@ export default function EmployeeCardPage() {
           return;
         }
 
-        // Extract name and title from theme
+        // Extract company_id from theme JSON
         const theme = data.theme as any;
+        const companyId = theme?.company_id;
+
+        // Fetch company data and services
+        let companyData = null;
+        let servicesData = null;
+
+        if (companyId) {
+          const [companyResult, servicesResult] = await Promise.all([
+            supabase
+              .from("companies")
+              .select("*")
+              .eq("id", companyId)
+              .single(),
+            supabase
+              .from("company_services")
+              .select("*")
+              .eq("company_id", companyId)
+              .order("display_order", { ascending: true }),
+          ]);
+
+          companyData = companyResult.data;
+          servicesData = servicesResult.data || [];
+        }
+
+        // Create card with metadata
         const cardWithMetadata: EmployeeWithCard = {
           ...data,
           name: theme?.name,
           title: theme?.title,
+          company: companyData,
+          services: servicesData,
         };
 
         setCard(cardWithMetadata);
@@ -100,19 +128,8 @@ export default function EmployeeCardPage() {
   const contactLinks = card.contact_links;
   const socialLinks = card.social_links;
   const businessHours = card.business_hours;
-
-  const services = [
-    {
-      icon: "🏗️",
-      title: "Handling Of Cargo",
-      description: "Work with a view to improving our infrastructure.",
-    },
-    {
-      icon: "🚂",
-      title: "Transport Of Passengers",
-      description: "Daily trains on the Goba, Ressano Garcia and Limpopo lines.",
-    },
-  ];
+  const company = card.company;
+  const services = card.services || [];
 
   const nextService = () => {
     setServiceIndex((prev) => (prev + 1) % services.length);
@@ -129,32 +146,32 @@ export default function EmployeeCardPage() {
         {/* Header with Company Logo */}
         <header className="bg-white py-6 px-4">
           <div className="flex items-center justify-center gap-4 mb-2">
-            {/* Company Logo - Left side illustration */}
-            <div className="hidden md:block text-gray-400">
-              <svg
-                width="60"
-                height="60"
-                viewBox="0 0 60 60"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Simple ship and train illustration */}
-                <rect x="5" y="35" width="20" height="15" fill="currentColor" opacity="0.3" />
-                <rect x="8" y="38" width="14" height="8" fill="currentColor" />
-                <rect x="30" y="40" width="25" height="10" fill="currentColor" opacity="0.3" />
-                <circle cx="35" cy="50" r="3" fill="currentColor" />
-                <circle cx="45" cy="50" r="3" fill="currentColor" />
-              </svg>
-            </div>
-            {/* CFM Logo */}
-            <div className="text-4xl font-bold text-green-600">CFM</div>
+            {/* Company Logo */}
+            {company?.logo_url ? (
+              <div className="relative w-32 h-16">
+                <Image
+                  src={company.logo_url}
+                  alt={company.name || "Company Logo"}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="text-4xl font-bold text-green-600">
+                {company?.name || "Company"}
+              </div>
+            )}
           </div>
-          <p className="text-green-600 font-semibold text-center text-sm mb-1">
-            MOÇAMBIQUE PORTS AND RAILWAYS
-          </p>
-          <p className="text-green-500 text-center text-xs">
-            PORTOS E CAMINHOS DE FERRO DE MOÇAMBIQUE, E.P.
-          </p>
+          {company?.name && (
+            <p className="text-green-600 font-semibold text-center text-sm mb-1">
+              {company.name}
+            </p>
+          )}
+          {company?.footer_text && (
+            <p className="text-green-500 text-center text-xs">
+              {company.footer_text}
+            </p>
+          )}
         </header>
 
         <main className="px-4 py-6">
@@ -189,15 +206,13 @@ export default function EmployeeCardPage() {
           </div>
 
           {/* Company Description */}
-          <div className="mb-6">
-            <p className="text-gray-700 text-sm leading-relaxed">
-              Mozambican public company responsible for managing and operating the
-              country&apos;s ports and railways. Its mission is to provide integrated
-              and efficient logistical solutions for goods and passengers,
-              contributing to the economic development of Mozambique and the wider
-              region.
-            </p>
-          </div>
+          {company?.description && (
+            <div className="mb-6">
+              <p className="text-gray-700 text-sm leading-relaxed">
+                {company.description}
+              </p>
+            </div>
+          )}
 
           {/* Contact Section */}
           <section className="mb-6">
@@ -227,16 +242,16 @@ export default function EmployeeCardPage() {
                   </a>
                 </div>
               )}
-              {contactLinks.website && (
+              {company?.website_url && (
                 <div className="flex items-center gap-3 p-4 bg-white border border-green-600 rounded">
                   <Globe className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <a
-                    href={contactLinks.website}
+                    href={company.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-900 hover:text-green-600 flex-1 break-all"
                   >
-                    {contactLinks.website}
+                    {company.website_url}
                   </a>
                 </div>
               )}
@@ -244,43 +259,73 @@ export default function EmployeeCardPage() {
           </section>
 
           {/* Services Section with Carousel */}
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
-              Services
-            </h2>
-            <div className="relative">
-              <button
-                onClick={prevService}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
-                aria-label="Previous service"
-              >
-                <ChevronLeft className="h-5 w-5 text-green-600" />
-              </button>
-              <div className="px-12">
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="p-6 border border-green-600 rounded text-center">
-                    <div className="text-5xl mb-4">{services[serviceIndex].icon}</div>
-                    <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                      {services[serviceIndex].title}
-                    </h3>
-                    <p className="text-xs text-gray-600 mb-4">
-                      {services[serviceIndex].description}
-                    </p>
-                    <button className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">
-                      Learn More
-                    </button>
+          {services.length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
+                Services
+              </h2>
+              <div className="relative">
+                {services.length > 1 && (
+                  <button
+                    onClick={prevService}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
+                    aria-label="Previous service"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-green-600" />
+                  </button>
+                )}
+                <div className={services.length > 1 ? "px-12" : ""}>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="p-6 border border-green-600 rounded text-center">
+                      {services[serviceIndex].icon_name && (
+                        <>
+                          {services[serviceIndex].icon_name.startsWith('http') ? (
+                            <div className="mb-4 flex justify-center">
+                              <div className="relative w-24 h-24">
+                                <Image
+                                  src={services[serviceIndex].icon_name}
+                                  alt={services[serviceIndex].title}
+                                  fill
+                                  className="object-contain"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-5xl mb-4">{services[serviceIndex].icon_name}</div>
+                          )}
+                        </>
+                      )}
+                      <h3 className="font-semibold text-gray-900 mb-2 text-base">
+                        {services[serviceIndex].title}
+                      </h3>
+                      <p className="text-xs text-gray-600 mb-4">
+                        {services[serviceIndex].description}
+                      </p>
+                      {company?.website_url && (
+                        <a
+                          href={company.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 inline-block"
+                        >
+                          Learn More
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {services.length > 1 && (
+                  <button
+                    onClick={nextService}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
+                    aria-label="Next service"
+                  >
+                    <ChevronRight className="h-5 w-5 text-green-600" />
+                  </button>
+                )}
               </div>
-              <button
-                onClick={nextService}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
-                aria-label="Next service"
-              >
-                <ChevronRight className="h-5 w-5 text-green-600" />
-              </button>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Business Hours */}
           {businessHours && (
@@ -321,41 +366,43 @@ export default function EmployeeCardPage() {
             </section>
           )}
 
-          {/* Social Media Links */}
-          <section className="mb-6">
-            <div className="flex justify-center gap-4">
-              {socialLinks.facebook && (
-                <a
-                  href={socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                >
-                  <Facebook className="h-6 w-6" />
-                </a>
-              )}
-              {socialLinks.linkedin && (
-                <a
-                  href={socialLinks.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                >
-                  <Linkedin className="h-6 w-6" />
-                </a>
-              )}
-              {socialLinks.instagram && (
-                <a
-                  href={socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                >
-                  <Instagram className="h-6 w-6" />
-                </a>
-              )}
-            </div>
-          </section>
+          {/* Social Media Links - Company social media */}
+          {(company?.facebook_url || company?.linkedin_url || company?.instagram_url) && (
+            <section className="mb-6">
+              <div className="flex justify-center gap-4">
+                {company.facebook_url && (
+                  <a
+                    href={company.facebook_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
+                  >
+                    <Facebook className="h-6 w-6" />
+                  </a>
+                )}
+                {company.linkedin_url && (
+                  <a
+                    href={company.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
+                  >
+                    <Linkedin className="h-6 w-6" />
+                  </a>
+                )}
+                {company.instagram_url && (
+                  <a
+                    href={company.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
+                  >
+                    <Instagram className="h-6 w-6" />
+                  </a>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* More Section */}
           <section className="mb-6">
@@ -399,8 +446,8 @@ export default function EmployeeCardPage() {
         {/* Footer */}
         <footer className="bg-green-600 text-white py-4">
           <div className="px-4 text-center text-xs">
-            © {new Date().getFullYear()} CFM - Portos E Caminhos De Ferro De
-            Moçambique. Todos Direitos Reservados.
+            © {new Date().getFullYear()} {company?.name || "Company"}
+            {company?.footer_text && ` - ${company.footer_text}`}. All Rights Reserved.
           </div>
         </footer>
       </div>

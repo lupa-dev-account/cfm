@@ -14,7 +14,7 @@ export interface EmployeeFormData {
   photoUrl?: string;
   photoFile?: File;
   contactLinks: ContactLinks;
-  socialLinks: SocialLinks;
+  socialLinks?: SocialLinks; // Optional - company social links are now in companies table
   businessHours?: BusinessHours;
   isActive: boolean;
 }
@@ -119,6 +119,9 @@ export async function createEmployee(
     company_id: companyId,
   };
 
+  // Default empty social links (since these are now in companies table)
+  const socialLinks = employeeData.socialLinks || { linkedin: "" };
+
   const { data, error } = await supabase
     .from("employee_cards")
     .insert({
@@ -126,7 +129,7 @@ export async function createEmployee(
       public_slug: publicSlug,
       photo_url: photoUrl,
       contact_links: employeeData.contactLinks,
-      social_links: employeeData.socialLinks,
+      social_links: socialLinks,
       business_hours: employeeData.businessHours || null,
       theme: theme,
       is_active: employeeData.isActive,

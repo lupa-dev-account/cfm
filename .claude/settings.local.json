@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node scripts/setup-cfm-data.js:*)",
+      "Bash(start scripts/add-columns-automated.html)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(start http://localhost:3001)",
+      "Bash(node scripts/debug-card.js:*)",
+      "Bash(node scripts/fix-existing-cards.js:*)",
+      "Bash(node scripts/fix-invalid-photo-urls.js:*)",
+      "Bash(node scripts/fix-company-logo.js:*)",
+      "Bash(node scripts/list-uploaded-images.js:*)",
+      "Bash(node scripts/apply-uploaded-images.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

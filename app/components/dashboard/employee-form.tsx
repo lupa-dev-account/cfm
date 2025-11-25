@@ -34,12 +34,6 @@ const employeeSchema = z.object({
     email: z.string().email("Invalid email address"),
     phone: z.string().min(1, "Phone number is required"),
     whatsapp: z.string().optional(),
-    website: z.string().url("Invalid URL").optional().or(z.literal("")),
-  }),
-  socialLinks: z.object({
-    linkedin: z.string().url("Invalid LinkedIn URL"),
-    facebook: z.string().url("Invalid Facebook URL").optional().or(z.literal("")),
-    instagram: z.string().url("Invalid Instagram URL").optional().or(z.literal("")),
   }),
   businessHours: z
     .object({
@@ -138,12 +132,6 @@ export function EmployeeForm({
         email: "",
         phone: "",
         whatsapp: "",
-        website: "",
-      },
-      socialLinks: {
-        linkedin: "",
-        facebook: "",
-        instagram: "",
       },
       isActive: true,
     },
@@ -160,8 +148,11 @@ export function EmployeeForm({
         lastName: nameParts.slice(1).join(" ") || "",
         title: theme?.title || "",
         photoUrl: employee.photo_url || "",
-        contactLinks: employee.contact_links,
-        socialLinks: employee.social_links,
+        contactLinks: {
+          email: employee.contact_links.email,
+          phone: employee.contact_links.phone,
+          whatsapp: employee.contact_links.whatsapp,
+        },
         businessHours: employee.business_hours || undefined,
         isActive: employee.is_active,
       });
@@ -209,7 +200,6 @@ export function EmployeeForm({
         photoUrl: usePhotoUrl && data.photoUrl ? data.photoUrl : undefined,
         photoFile: !usePhotoUrl && photoFile ? photoFile : undefined,
         contactLinks: data.contactLinks,
-        socialLinks: data.socialLinks,
         businessHours: data.businessHours,
         isActive: data.isActive,
       };
@@ -291,6 +281,7 @@ export function EmployeeForm({
               </div>
               {photoPreview && (
                 <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoPreview}
                     alt="Preview"
@@ -395,70 +386,26 @@ export function EmployeeForm({
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
-                <Input
-                  id="whatsapp"
-                  type="tel"
-                  {...register("contactLinks.whatsapp")}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website (Optional)</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  {...register("contactLinks.website")}
-                  disabled={isLoading}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
+              <Input
+                id="whatsapp"
+                type="tel"
+                placeholder="+258 XX XXX XXXX"
+                {...register("contactLinks.whatsapp")}
+                disabled={isLoading}
+              />
+              <p className="text-xs text-gray-500">
+                Employee&apos;s personal WhatsApp number
+              </p>
             </div>
           </div>
 
-          {/* Social Links */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Social Links</h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="linkedin">
-                  LinkedIn <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="linkedin"
-                  type="url"
-                  placeholder="https://linkedin.com/in/username"
-                  {...register("socialLinks.linkedin")}
-                  disabled={isLoading}
-                />
-                {errors.socialLinks?.linkedin && (
-                  <p className="text-sm text-red-600">
-                    {errors.socialLinks.linkedin.message}
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facebook">Facebook (Optional)</Label>
-                  <Input
-                    id="facebook"
-                    type="url"
-                    {...register("socialLinks.facebook")}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram (Optional)</Label>
-                  <Input
-                    id="instagram"
-                    type="url"
-                    {...register("socialLinks.instagram")}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="border-t pt-4">
+            <p className="text-sm text-gray-600 mb-2">
+              <strong>Note:</strong> Company-wide information (logo, description, website, social media links)
+              are managed in the Company Settings page and will be displayed on all employee cards.
+            </p>
           </div>
 
           {/* Active Status */}
@@ -505,4 +452,7 @@ export function EmployeeForm({
     </Dialog>
   );
 }
+
+
+
 
