@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Loading } from "@/components/ui/loading";
+import { ShareModal } from "@/app/components/card/share-modal";
 import type { EmployeeWithCard } from "@/lib/types";
 import {
-  Phone,
   Mail,
   Globe,
   Facebook,
@@ -28,6 +28,7 @@ export default function EmployeeCardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [serviceIndex, setServiceIndex] = useState(0);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -59,9 +60,22 @@ export default function EmployeeCardPage() {
           return;
         }
 
-        // Extract company_id from theme JSON
+        // Extract theme data
         const theme = data.theme as any;
-        const companyId = theme?.company_id;
+
+        // Try to fetch user/employee data (optional - may not be linked properly)
+        const { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", data.employee_id)
+          .single();
+
+        if (userError) {
+          console.warn("Could not fetch user data (may not be linked):", userError);
+        }
+
+        // Determine company_id from user relationship or fallback to theme
+        const companyId = userData?.company_id || theme?.company_id;
 
         // Fetch company data and services
         let companyData = null;
@@ -83,19 +97,29 @@ export default function EmployeeCardPage() {
 
           companyData = companyResult.data;
           servicesData = servicesResult.data || [];
+
+          if (companyResult.error) {
+            console.error("Failed to fetch company data:", companyResult.error);
+          }
+          if (servicesResult.error) {
+            console.error("Failed to fetch services data:", servicesResult.error);
+          }
+        } else {
+          console.warn("No company_id found in user or theme data");
         }
 
-        // Create card with metadata
+        // Create card with metadata - prefer theme data, fallback to user data
         const cardWithMetadata: EmployeeWithCard = {
           ...data,
-          name: theme?.name,
-          title: theme?.title,
+          name: theme?.name || (userData ? `${userData.first_name || ''} ${userData.last_name || ''}`.trim() : null) || "Employee",
+          title: theme?.title || userData?.title || "",
           company: companyData,
           services: servicesData,
         };
 
         setCard(cardWithMetadata);
       } catch (err: any) {
+        console.error("Error loading card:", err);
         setError(err.message || "Failed to load card");
       } finally {
         setLoading(false);
@@ -143,85 +167,80 @@ export default function EmployeeCardPage() {
     <div className="min-h-screen bg-gray-100">
       {/* Centered container with max-width */}
       <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
-        {/* Header with Company Logo */}
-        <header className="bg-white py-6 px-4">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            {/* Company Logo */}
-            {company?.logo_url ? (
-              <div className="relative w-32 h-16">
-                <Image
-                  src={company.logo_url}
-                  alt={company.name || "Company Logo"}
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            ) : (
-              <div className="text-4xl font-bold text-green-600">
-                {company?.name || "Company"}
-              </div>
-            )}
-          </div>
-          {company?.name && (
-            <p className="text-green-600 font-semibold text-center text-sm mb-1">
-              {company.name}
-            </p>
+        {/* Header Section with Company Banner */}
+        <header className="relative h-[240px] border-b-2 border-green-800 overflow-hidden">
+          {company?.banner_url && (
+            <Image
+              src={company.banner_url}
+              alt={company.name || "Company Banner"}
+              fill
+              className="object-cover"
+            />
           )}
-          {company?.footer_text && (
-            <p className="text-green-500 text-center text-xs">
-              {company.footer_text}
-            </p>
-          )}
+
+          {/* Simple gray overlay on top of the image */}
+          <div className="absolute inset-0 bg-[rgba(17,17,17,0.12)] pointer-events-none" />
         </header>
 
-        <main className="px-4 py-6">
-          {/* Profile Section */}
-          <div className="flex items-start gap-6 mb-6">
-            {card.photo_url ? (
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-green-600 flex-shrink-0">
-                <Image
-                  src={card.photo_url}
-                  alt={card.name || "Profile"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-green-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-gray-400 text-xl">
-                  {card.name
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase() || "?"}
-                </span>
-              </div>
-            )}
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {card.name || "Unnamed Employee"}
-              </h1>
-              <p className="text-base text-gray-600">{card.title || ""}</p>
+        {/* Profile Picture - Overlapping the green line */}
+        <div className="relative flex justify-center mb-6 z-20 mt-[-68px]">
+          {card.photo_url ? (
+            <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-green-800 shadow-lg bg-white">
+              <Image
+                src={card.photo_url}
+                alt={card.name || "Profile"}
+                fill
+                className="object-cover"
+              />
             </div>
-          </div>
+          ) : (
+            <div className="w-32 h-32 rounded-full bg-gray-200 border-4 border-green-800 shadow-lg flex items-center justify-center">
+              <span className="text-gray-400 text-3xl">
+                {card.name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "?"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Profile Section */}
+        <div className="bg-white px-4 pb-6">
+
+          {/* Name */}
+          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            {card.name || "Unnamed Employee"}
+          </h1>
+
+          {/* Title */}
+          {card.title && (
+            <p className="text-lg text-green-600 text-center font-semibold mb-4">
+              {card.title}
+            </p>
+          )}
 
           {/* Company Description */}
           {company?.description && (
             <div className="mb-6">
-              <p className="text-gray-700 text-sm leading-relaxed">
+              <p className="text-gray-700 text-sm leading-relaxed text-center">
                 {company.description}
               </p>
             </div>
           )}
+        </div>
+
+        <main className="px-4 py-6">
 
           {/* Contact Section */}
           <section className="mb-6">
-            <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
+            <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
               Contact
             </h2>
             <div className="space-y-3">
               {contactLinks.phone && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-600 rounded">
+                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
                   <MessageCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <a
                     href={`tel:${contactLinks.phone}`}
@@ -232,7 +251,7 @@ export default function EmployeeCardPage() {
                 </div>
               )}
               {contactLinks.email && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-600 rounded">
+                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
                   <Mail className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <a
                     href={`mailto:${contactLinks.email}`}
@@ -243,7 +262,7 @@ export default function EmployeeCardPage() {
                 </div>
               )}
               {company?.website_url && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-600 rounded">
+                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
                   <Globe className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <a
                     href={company.website_url}
@@ -261,14 +280,14 @@ export default function EmployeeCardPage() {
           {/* Services Section with Carousel */}
           {services.length > 0 && (
             <section className="mb-6">
-              <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
+              <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
                 Services
               </h2>
               <div className="relative">
                 {services.length > 1 && (
                   <button
                     onClick={prevService}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50"
                     aria-label="Previous service"
                   >
                     <ChevronLeft className="h-5 w-5 text-green-600" />
@@ -276,7 +295,7 @@ export default function EmployeeCardPage() {
                 )}
                 <div className={services.length > 1 ? "px-12" : ""}>
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="p-6 border border-green-600 rounded text-center">
+                    <div className="p-6 border border-green-800 rounded text-center">
                       {services[serviceIndex].icon_name && (
                         <>
                           {services[serviceIndex].icon_name.startsWith('http') ? (
@@ -317,7 +336,7 @@ export default function EmployeeCardPage() {
                 {services.length > 1 && (
                   <button
                     onClick={nextService}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-600 rounded-full p-2 hover:bg-green-50"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50"
                     aria-label="Next service"
                   >
                     <ChevronRight className="h-5 w-5 text-green-600" />
@@ -330,7 +349,7 @@ export default function EmployeeCardPage() {
           {/* Business Hours */}
           {businessHours && (
             <section className="mb-6">
-              <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
+              <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
                 Business Hours
               </h2>
               <div className="space-y-0">
@@ -406,35 +425,24 @@ export default function EmployeeCardPage() {
 
           {/* More Section */}
           <section className="mb-6">
-            <h2 className="text-lg font-semibold text-green-600 text-center mb-4 underline">
+            <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
               More
             </h2>
             <div className="grid grid-cols-3 gap-3">
-              <button className="flex flex-col items-center gap-2 p-4 border border-green-600 rounded hover:bg-green-50 transition-colors">
+              <button className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors">
                 <Save className="h-5 w-5 text-green-600" />
                 <span className="text-xs text-gray-900">Save</span>
               </button>
               <button
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: card.name || "Business Card",
-                      text: `Check out ${card.name}'s business card`,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert("Link copied to clipboard!");
-                  }
-                }}
-                className="flex flex-col items-center gap-2 p-4 border border-green-600 rounded hover:bg-green-50 transition-colors"
+                onClick={() => setShareModalOpen(true)}
+                className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors"
               >
                 <Share2 className="h-5 w-5 text-green-600" />
                 <span className="text-xs text-gray-900">Share</span>
               </button>
               <a
                 href={`tel:${contactLinks.phone}`}
-                className="flex flex-col items-center gap-2 p-4 border border-green-600 rounded hover:bg-green-50 transition-colors"
+                className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors"
               >
                 <PhoneCall className="h-5 w-5 text-green-600" />
                 <span className="text-xs text-gray-900">Contact</span>
@@ -451,6 +459,15 @@ export default function EmployeeCardPage() {
           </div>
         </footer>
       </div>
+
+      {/* Share Modal */}
+      {card && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          card={card}
+        />
+      )}
     </div>
   );
 }
