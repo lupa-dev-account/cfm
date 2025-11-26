@@ -70,12 +70,12 @@ type ServiceCardProps = {
 };
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
-  <div className="w-full rounded-xl bg-gray-50 p-6 flex flex-col items-center text-center">
+  <div className="w-full h-full rounded-xl bg-gray-50 p-6 flex flex-col items-center text-center">
     {service.icon_name && (
       <>
         {service.icon_name.startsWith("http") ? (
           <div className="mb-6 flex justify-center">
-            <div className="relative w-32 h-32 md:w-40 md:h-40">
+            <div className="relative w-32 h-32 md:w-40 md:h-40 bg-gray-100">
               <Image
                 src={service.icon_name}
                 alt={service.title}
@@ -96,7 +96,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
       {service.title}
     </h3>
 
-    <p className="text-sm md:text-base text-gray-600 mb-6">
+    {/* description clamped with ... */}
+    <p className="text-sm md:text-base text-gray-600 mb-4 line-clamp-3">
       {service.description}
     </p>
 
@@ -105,13 +106,32 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
         href={websiteUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-green-600 text-white px-6 py-3 rounded text-sm md:text-base hover:bg-green-700 inline-block"
+        className="mt-auto bg-green-800 text-white px-6 py-3 rounded text-sm md:text-base hover:bg-green-700 inline-block"
       >
         Learn More
       </a>
     )}
   </div>
 );
+
+
+type SocialIconProps = {
+  icon: React.ElementType;
+  href: string;
+};
+
+const SocialIcon: React.FC<SocialIconProps> = ({ icon: Icon, href }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-12 h-12 rounded-full bg-green-800 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
+  >
+    <Icon className="h-6 w-6" />
+  </a>
+);
+
+
 
 
 // Shared class names for repeated styles
@@ -124,6 +144,106 @@ const moreTileClass =
 const moreIconClass = "h-5 w-5 text-green-600";
 const moreLabelClass = "text-xs text-gray-900";
 
+
+/**
+ * Escape special characters in vCard values
+ */
+function escapeVCardValue(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;")
+    .replace(/\n/g, "\\n");
+}
+
+/**
+ * Generate vCard format for phonebook integration
+ */
+function generateVCard(card: EmployeeWithCard): string {
+  const contactLinks = card.contact_links;
+  const company = card.company;
+
+  let vcard = "BEGIN:VCARD\r\n";
+  vcard += "VERSION:3.0\r\n";
+
+  // Name - properly formatted for phonebook
+  if (card.name) {
+    const nameParts = card.name.trim().split(/\s+/);
+    const lastName = nameParts.length > 1 ? nameParts.slice(-1)[0] : "";
+    const firstName = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] || "";
+
+    vcard += `FN:${escapeVCardValue(card.name)}\r\n`;
+    vcard += `N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};;;\r\n`;
+  }
+
+  // Title and Organization
+  if (card.title) {
+    vcard += `TITLE:${escapeVCardValue(card.title)}\r\n`;
+  }
+  if (company?.name) {
+    vcard += `ORG:${escapeVCardValue(company.name)}\r\n`;
+  }
+
+  // Phone - primary contact
+  if (contactLinks.phone) {
+    const cleanPhone = contactLinks.phone.replace(/[^\d+]/g, "");
+    vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone}\r\n`;
+  }
+
+  // WhatsApp if different from main phone
+  if (contactLinks.whatsapp && contactLinks.whatsapp !== contactLinks.phone) {
+    const cleanWhatsApp = contactLinks.whatsapp.replace(/[^\d+]/g, "");
+    vcard += `TEL;TYPE=CELL,WA:${cleanWhatsApp}\r\n`;
+  }
+
+  // Email
+  if (contactLinks.email) {
+    vcard += `EMAIL;TYPE=INTERNET:${contactLinks.email}\r\n`;
+  }
+
+  // Website
+  if (contactLinks.website) {
+    vcard += `URL:${contactLinks.website}\r\n`;
+  } else if (company?.website_url) {
+    vcard += `URL:${company.website_url}\r\n`;
+  }
+
+  // Photo URL (if available)
+  if (card.photo_url) {
+    vcard += `PHOTO;VALUE=URI;TYPE=URL:${card.photo_url}\r\n`;
+  }
+
+  // Note/Description
+  const notes = [];
+  if (company?.description) {
+    notes.push(company.description);
+  }
+  if (card.title && company?.name) {
+    notes.push(`${card.title} at ${company.name}`);
+  }
+  if (notes.length > 0) {
+    vcard += `NOTE:${escapeVCardValue(notes.join("\\n"))}\r\n`;
+  }
+
+  // Social links as custom fields
+  if (company?.linkedin_url) {
+    vcard += `X-SOCIALPROFILE;TYPE=linkedin:${company.linkedin_url}\r\n`;
+  }
+  if (company?.facebook_url) {
+    vcard += `X-SOCIALPROFILE;TYPE=facebook:${company.facebook_url}\r\n`;
+  }
+  if (company?.instagram_url) {
+    vcard += `X-SOCIALPROFILE;TYPE=instagram:${company.instagram_url}\r\n`;
+  }
+
+  // Card URL for reference
+  if (typeof window !== "undefined") {
+    vcard += `URL;TYPE=OTHER:${window.location.href}\r\n`;
+  }
+
+  vcard += "END:VCARD\r\n";
+  return vcard;
+}
 
 export default function EmployeeCardPage() {
   const params = useParams();
@@ -267,14 +387,36 @@ export default function EmployeeCardPage() {
     setServiceIndex((prev) => (prev - 1 + services.length) % services.length);
   };
 
-  const visibleServices: CompanyService[] = [];
-const maxVisible = Math.min(services.length, 2); // show up to 2 cards like the prototype
+  const handleDownloadVCard = () => {
+    const vCardData = generateVCard(card);
+    const blob = new Blob([vCardData], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${card.name?.replace(/\s+/g, "-") || "contact"}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
-for (let i = 0; i < maxVisible; i++) {
-  const index = (serviceIndex + i) % services.length;
-  visibleServices.push(services[index]);
-}
+  const showCarousel = services.length > 2;
 
+  let visibleServices: CompanyService[];
+  
+  if (showCarousel) {
+    const maxVisible = 2;
+    visibleServices = [];
+  
+    for (let i = 0; i < maxVisible; i++) {
+      const index = (serviceIndex + i) % services.length;
+      visibleServices.push(services[index]);
+    }
+  } else {
+    // 0, 1, or 2 services: just show them all, no arrows
+    visibleServices = services as CompanyService[];
+  }
+  
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -379,7 +521,7 @@ for (let i = 0; i < maxVisible; i++) {
     <SectionTitle>Services</SectionTitle>
 
     <div className="relative">
-      {services.length > 1 && (
+      {showCarousel && (
         <button
           onClick={prevService}
           className={`${carouselButtonBase} -left-2`}
@@ -390,7 +532,7 @@ for (let i = 0; i < maxVisible; i++) {
       )}
 
       <div className="px-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
           {visibleServices.map((service) => (
             <ServiceCard
               key={service.id}
@@ -401,7 +543,7 @@ for (let i = 0; i < maxVisible; i++) {
         </div>
       </div>
 
-      {services.length > 1 && (
+      {showCarousel && (
         <button
           onClick={nextService}
           className={`${carouselButtonBase} -right-2`}
@@ -415,91 +557,78 @@ for (let i = 0; i < maxVisible; i++) {
 )}
 
 
-
-
           {/* Business Hours */}
           {businessHours && (
-            <section className="mb-6">
-              <SectionTitle>
-                Business Hours
-              </SectionTitle>
-              <div className="space-y-0">
-                {[
-                  { day: "Monday", key: "monday" },
-                  { day: "Tuesday", key: "tuesday" },
-                  { day: "Wednesday", key: "wednesday" },
-                  { day: "Thursday", key: "thursday" },
-                  { day: "Friday", key: "friday" },
-                  { day: "Saturday", key: "saturday" },
-                  { day: "Sunday", key: "sunday" },
-                ].map(({ day, key }, index) => {
-                  const hours = businessHours[key as keyof typeof businessHours];
-                  return (
-                    <div
-                      key={key}
-                      className={`flex justify-between items-center py-2 ${
-                        index < 6 ? "border-b border-gray-200" : ""
-                      }`}
-                    >
-                      <span className="text-gray-900 text-sm">{day}</span>
-                      <span className="text-gray-600 text-sm">
-                        {hours?.closed
-                          ? "Closed"
-                          : hours?.open && hours?.close
-                          ? `${hours.open} - ${hours.close}`
-                          : "Closed"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+  <section className="mb-6">
+    <div className="bg-gray-100 rounded-xl px-4 py-6">
+      <SectionTitle>Business Hours</SectionTitle>
+
+      <div className="mt-4 mx-auto w-[260px] md:w-[280px] divide-y divide-gray-500">
+
+  {[
+    { day: "Monday", key: "monday" },
+    { day: "Tuesday", key: "tuesday" },
+    { day: "Wednesday", key: "wednesday" },
+    { day: "Thursday", key: "thursday" },
+    { day: "Friday", key: "friday" },
+    { day: "Saturday", key: "saturday" },
+    { day: "Sunday", key: "sunday" },
+  ].map(({ day, key }) => {
+    const hours = businessHours[key as keyof typeof businessHours];
+    const isClosed = hours?.closed || !hours?.open || !hours?.close;
+    const label = isClosed ? "Closed" : `${hours.open} - ${hours.close}`;
+
+    return (
+      <div
+        key={key}
+        className="flex justify-center py-2"
+      >
+        {/* Column container */}
+        <div className="flex w-[260px] md:w-[280px] justify-between">
+          <span className="text-green-700 font-semibold text-sm md:text-base">
+            {day}
+          </span>
+
+          <span className="text-gray-900 text-sm md:text-base text-right">
+            {label}
+          </span>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
+    </div>
+  </section>
+)}
+
 
           {/* Social Media Links - Company social media */}
-          {(company?.facebook_url || company?.linkedin_url || company?.instagram_url) && (
-            <section className="mb-6">
-              <div className="flex justify-center gap-4">
-                {company.facebook_url && (
-                  <a
-                    href={company.facebook_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                  >
-                    <FaMeta className="h-6 w-6" />
-                  </a>
-                )}
-                {company.linkedin_url && (
-                  <a
-                    href={company.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                  >
-                    <FaLinkedin className="h-6 w-6" />
-                  </a>
-                )}
-                {company.instagram_url && (
-                  <a
-                    href={company.instagram_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-                  >
-                    <FaInstagram className="h-6 w-6" />
-                  </a>
-                )}
-              </div>
-            </section>
-          )}
+{(company?.facebook_url || company?.linkedin_url || company?.instagram_url) && (
+  <section className="mb-6">
+    <div className="flex justify-center gap-4">
+      {company.facebook_url && (
+        <SocialIcon icon={FaMeta} href={company.facebook_url} />
+      )}
+
+      {company.linkedin_url && (
+        <SocialIcon icon={FaLinkedin} href={company.linkedin_url} />
+      )}
+
+      {company.instagram_url && (
+        <SocialIcon icon={FaInstagram} href={company.instagram_url} />
+      )}
+    </div>
+  </section>
+)}
+
 
           {/* More Section */}
 <section className="mb-6">
   <SectionTitle>More</SectionTitle>
 
   <div className="grid grid-cols-3 gap-3">
-    <button className={moreTileClass}>
+    <button onClick={handleDownloadVCard} className={moreTileClass}>
       <MdSave className={moreIconClass} />
       <span className={moreLabelClass}>Save</span>
     </button>
@@ -525,7 +654,7 @@ for (let i = 0; i < maxVisible; i++) {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-600 text-white py-4">
+        <footer className="bg-green-800 text-white py-4">
           <div className="px-4 text-center text-xs">
             © {new Date().getFullYear()} {company?.name || "Company"}
             {company?.footer_text && ` - ${company.footer_text}`}. All Rights Reserved.
