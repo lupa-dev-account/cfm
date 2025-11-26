@@ -671,7 +671,7 @@ export default function EmployeeCardPage() {
       )}
 
       {company.instagram_url && (
-        <SocialIcon icon={FaInstagram} href={company.instagram_url} />
+        <SocialIcon icon={FaInstagram} href={company.instagram_url!} />
       )}
     </div>
   </section>
