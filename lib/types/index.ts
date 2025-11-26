@@ -25,6 +25,7 @@ export interface Company {
   linkedin_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  business_hours: BusinessHours | null;
   created_at: string;
 }
 
