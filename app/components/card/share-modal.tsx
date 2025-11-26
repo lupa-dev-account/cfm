@@ -290,7 +290,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 )}
                 {company?.instagram_url && (
                   <button
-                    onClick={() => window.open(company.instagram_url, "_blank", "noopener,noreferrer")}
+                    onClick={() => window.open(company.instagram_url!, "_blank", "noopener,noreferrer")}
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
                     title="Visit Instagram"
                   >
