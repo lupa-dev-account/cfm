@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,16 +24,43 @@ import {
 } from "@/lib/services/employees";
 import type { EmployeeCard, BusinessHours } from "@/lib/types";
 import { Upload, X } from "lucide-react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+// Custom validation for CFM email domains
+const cfmEmailValidation = z.string().email("Invalid email address").refine(
+  (email) => {
+    const domain = email.split("@")[1]?.toLowerCase();
+    return domain === "cfm.com" || domain === "cfm.co.mz";
+  },
+  { message: "Email must end with @cfm.com or @cfm.co.mz" }
+);
+
+// Custom validation for phone numbers
+const phoneValidation = z.string().refine(
+  (phone) => {
+    if (!phone) return false;
+    return isValidPhoneNumber(phone);
+  },
+  { message: "Invalid phone number" }
+);
+
+// Validation for text-only fields (names)
+const textOnlyValidation = (fieldName: string) =>
+  z.string().min(1, `${fieldName} is required`).refine(
+    (value) => /^[a-zA-Z\s]+$/.test(value),
+    { message: `${fieldName} can only contain letters and spaces` }
+  );
 
 const employeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: textOnlyValidation("First name"),
+  lastName: textOnlyValidation("Last name"),
   title: z.string().min(1, "Title is required"),
   photoUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   contactLinks: z.object({
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(1, "Phone number is required"),
-    whatsapp: z.string().optional(),
+    email: cfmEmailValidation,
+    phone: phoneValidation,
+    whatsapp: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
     .object({
@@ -121,6 +148,7 @@ export function EmployeeForm({
     reset,
     watch,
     setValue,
+    control,
   } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
@@ -313,6 +341,12 @@ export function EmployeeForm({
                 id="firstName"
                 {...register("firstName")}
                 disabled={isLoading}
+                onKeyPress={(e) => {
+                  // Only allow letters and spaces
+                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
               />
               {errors.firstName && (
                 <p className="text-sm text-red-600">{errors.firstName.message}</p>
@@ -326,6 +360,12 @@ export function EmployeeForm({
                 id="lastName"
                 {...register("lastName")}
                 disabled={isLoading}
+                onKeyPress={(e) => {
+                  // Only allow letters and spaces
+                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
               />
               {errors.lastName && (
                 <p className="text-sm text-red-600">{errors.lastName.message}</p>
@@ -352,7 +392,7 @@ export function EmployeeForm({
           {/* Contact Links */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-900">Contact Details</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">
                   Email <span className="text-red-500">*</span>
@@ -360,6 +400,7 @@ export function EmployeeForm({
                 <Input
                   id="email"
                   type="email"
+                  placeholder="employee@cfm.com or employee@cfm.co.mz"
                   {...register("contactLinks.email")}
                   disabled={isLoading}
                 />
@@ -368,16 +409,37 @@ export function EmployeeForm({
                     {errors.contactLinks.email.message}
                   </p>
                 )}
+                <p className="text-xs text-gray-500">
+                  Must end with @cfm.com or @cfm.co.mz
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">
                   Phone <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  {...register("contactLinks.phone")}
-                  disabled={isLoading}
+                <Controller
+                  name="contactLinks.phone"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="Enter phone number"
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
                 />
                 {errors.contactLinks?.phone && (
                   <p className="text-sm text-red-600">
@@ -385,19 +447,36 @@ export function EmployeeForm({
                   </p>
                 )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
-              <Input
-                id="whatsapp"
-                type="tel"
-                placeholder="+258 XX XXX XXXX"
-                {...register("contactLinks.whatsapp")}
-                disabled={isLoading}
-              />
-              <p className="text-xs text-gray-500">
-                Employee&apos;s personal WhatsApp number
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
+                <Controller
+                  name="contactLinks.whatsapp"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="+258 XX XXX XXXX"
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
+                />
+                <p className="text-xs text-gray-500">
+                  Employee&apos;s personal WhatsApp number
+                </p>
+              </div>
             </div>
           </div>
 

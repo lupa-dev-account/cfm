@@ -36,11 +36,11 @@ type ContactItemProps = {
 
 const ContactItem: React.FC<ContactItemProps> = ({ icon: Icon, href, children, external }) => {
   return (
-    <div className="flex items-center gap-4 p-5 bg-white border-2 border-green-700 rounded-xl">
-      <Icon className="p-2 h-12 w-12 bg-green-700 text-white rounded-full flex-shrink-0" />
+    <div className="flex items-center gap-3 p-4 bg-white border-2 border-green-700 rounded-xl">
+      <Icon className="p-1.5 h-10 w-10 bg-green-700 text-white rounded-full flex-shrink-0" />
       <a
         href={href}
-        className="text-gray-900 text-lg font-medium hover:text-green-700 flex-1 break-all"
+        className="text-gray-900 text-base font-medium hover:text-green-700 flex-1 break-all"
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
         {children}
@@ -139,9 +139,9 @@ const carouselButtonBase =
   "absolute top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50";
 
 const moreTileClass =
-  "flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors";
+  "flex flex-col items-center gap-1.5 p-3 border border-green-800 rounded hover:bg-green-50 transition-colors";
 
-const moreIconClass = "h-5 w-5 text-green-600";
+const moreIconClass = "h-4 w-4 text-green-600";
 const moreLabelClass = "text-xs text-gray-900";
 
 
@@ -457,7 +457,7 @@ export default function EmployeeCardPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Centered container with max-width */}
-      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen">
+      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-lg overflow-hidden">
         {/* Header Section with Company Banner */}
         <header className="relative h-[240px] border-b-2 border-green-800 overflow-hidden">
           {company?.banner_url && (
@@ -498,38 +498,38 @@ export default function EmployeeCardPage() {
         </div>
 
         {/* Profile Section */}
-        <div className="bg-white px-4 pb-6">
+        <div className="bg-white px-4 pb-3">
 
           {/* Name */}
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 text-center mb-1">
             {card.name || "Unnamed Employee"}
           </h1>
 
           {/* Title */}
           {card.title && (
-            <p className="text-lg text-green-600 text-center font-semibold mb-4">
+            <p className="text-lg text-green-600 text-center font-normal mb-2">
               {card.title}
             </p>
           )}
 
           {/* Company Description */}
           {company?.description && (
-            <div className="mb-6">
-              <p className="text-gray-700 text-sm leading-relaxed text-center">
+            <div className="mb-3">
+              <p className="text-gray-700 text-sm leading-relaxed text-center opacity-80">
                 {company.description}
               </p>
             </div>
           )}
         </div>
 
-        <main className="px-4 py-6">
+        <main className="px-4 py-4">
 
           {/* Contact Section */}
-          <section className="mb-10">
+          <section className="mb-8">
           <SectionTitle>Contact</SectionTitle>
 
 
-  <div className="space-y-5">
+  <div className="space-y-3">
     {contactLinks.phone && (
       <ContactItem icon={FaWhatsapp} href={`tel:${contactLinks.phone}`}>
         {contactLinks.phone}
@@ -680,10 +680,10 @@ export default function EmployeeCardPage() {
 
 
           {/* More Section */}
-<section className="mb-6">
+<section className="mb-4">
   <SectionTitle>More</SectionTitle>
 
-  <div className="grid grid-cols-3 gap-3">
+  <div className="grid grid-cols-3 gap-2">
     <button onClick={handleDownloadVCard} className={moreTileClass}>
       <MdSave className={moreIconClass} />
       <span className={moreLabelClass}>Save</span>
@@ -710,7 +710,7 @@ export default function EmployeeCardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-800 text-white py-4">
+        <footer className="bg-green-800 text-white py-4 rounded-t-lg">
           <div className="px-4 text-center text-xs">
             © {new Date().getFullYear()} {company?.name || "Company"}
             {company?.footer_text && ` - ${company.footer_text}`}. All Rights Reserved.

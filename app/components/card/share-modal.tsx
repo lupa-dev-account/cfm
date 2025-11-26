@@ -231,16 +231,12 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 includeMargin={false}
                 fgColor="#1a5f3f"
                 bgColor="#ffffff"
-                imageSettings={
-                  company?.logo_url 
-                    ? {
-                        src: company.logo_url, 
-                        height: 30,
-                        width: 30,
-                        excavate: true,
-                      }
-                    : undefined
-                }
+                imageSettings={{
+                  src: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/site_home_logo.webp",
+                  height: 40,
+                  width: 40,
+                  excavate: true,
+                }}
               />
             </div>
             <p className="text-sm text-gray-600 text-center">
