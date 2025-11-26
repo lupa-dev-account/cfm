@@ -22,6 +22,9 @@ export interface Company {
   logo_url: string | null;
   footer_text: string | null;
   website_url: string | null;
+  linkedin_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
   created_at: string;
 }
 
@@ -63,6 +66,7 @@ export interface EmployeeCard {
   employee_id: string;
   public_slug: string;
   photo_url: string | null;
+  qr_image_url?: string | null; // Optional QR code image with company logo
   contact_links: ContactLinks;
   social_links: SocialLinks;
   business_hours: BusinessHours | null;
@@ -70,6 +74,13 @@ export interface EmployeeCard {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface EmployeeWithCard extends EmployeeCard {
+  name?: string;
+  title?: string;
+  company?: Company | null;
+  services?: CompanyService[] | null;
 }
 
 export interface NFCTag {

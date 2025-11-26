@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -17,7 +19,74 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Elfsight Language Translator Widget Positioning */
+.elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  background: transparent !important;
+}
+
+/* Hide the "Free Website Translator Widget" text */
+.elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e a[href*="elfsight.com"] {
+  display: none !important;
+}
+
+/* Mobile responsive positioning */
+@media (max-width: 768px) {
+  .elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e {
+    top: 10px !important;
+    right: 10px !important;
+  }
+}
+
+/* Phone Input Custom Styles */
+.phone-input-custom {
+  width: 100%;
+}
+
+.phone-input-custom .PhoneInputCountry {
+  padding-right: 0.5rem;
+  border-right: 1px solid #d1d5db;
+  margin-right: 0.5rem;
+}
+
+.phone-input-custom .PhoneInputInput {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Phone Input Country Selector Dropdown */
+.PhoneInputCountrySelect {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  padding: 0.5rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+}
+
+.PhoneInputCountrySelect:focus {
+  outline: 2px solid #16a34a !important;
+  outline-offset: 2px !important;
+}
+
+.PhoneInputCountrySelect option {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  padding: 0.5rem !important;
+}
+
+.PhoneInputCountrySelect option:hover,
+.PhoneInputCountrySelect option:focus {
+  background-color: #e5e7eb !important;
 }
 
 @layer utilities {

@@ -35,6 +35,22 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# scripts (optional - remove if you want to track SQL scripts)
-# scripts/*.sql
+# Claude Code local settings (never commit)
+.claude/settings.local.json
+
+# Scripts with sensitive data (passwords, credentials)
+scripts/update-passwords*.sh
+scripts/*password*.sh
+scripts/*credentials*.sh
+scripts/*-automated.html.local
+
+# Temporary assets and QR codes
+assets/qr_code.png
+assets/temp_*
+
+# SQL scripts with actual data (keep template versions)
+# scripts/*.sql (commented - we'll track sanitized templates)
+
+# Documentation files that might contain sensitive info
+.git-remote-setup.md
 

@@ -15,6 +15,20 @@ const config: Config = {
     },
   },
   plugins: [],
+  variants: {
+    extend: {
+      backgroundColor: ["before"],
+      opacity: ["before"],
+      display: ["before"],
+      position: ["before"],
+      inset: ["before"],
+      width: ["before"],
+      height: ["before"],
+      color: {
+        theme: "#0b6831", // CFMI Green
+      },
+    },
+  },
 };
-export default config;
 
+export default config;
