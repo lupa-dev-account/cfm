@@ -2,8 +2,8 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import Image from "next/image";
-import { ChevronLeft, X, ExternalLink, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { ChevronLeft, X, ExternalLink, Twitter, Linkedin, Instagram } from "lucide-react";
+import { FaWhatsapp, FaMeta } from "react-icons/fa6";
 import {
   Dialog,
   DialogContent,
@@ -170,7 +170,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 max-h-[90vh] overflow-y-auto [&>button]:hidden">
+      <DialogContent className="max-w-md p-0 max-h-[90vh] overflow-y-auto [&>button]:hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-green-800 [&::-webkit-scrollbar-thumb]:rounded-full">
         {/* Header */}
         <div className="relative bg-white pt-6 pb-4">
           <div className="flex items-center justify-between px-6">
@@ -197,7 +197,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
         {/* Profile Picture */}
         <div className="flex justify-center -mt-2">
           {card.photo_url ? (
-            <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-800 shadow-lg bg-white">
+            <div className="relative w-20 h-20 rounded-full mb-6 overflow-hidden border-2 border-green-800 shadow-lg bg-white">
               <Image
                 src={card.photo_url}
                 alt={card.name || "Profile"}
@@ -206,7 +206,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
               />
             </div>
           ) : (
-            <div className="w-32 h-32 rounded-full bg-gray-200 border-4 border-green-800 shadow-lg flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-gray-200 border-2 border-green-800 shadow-lg flex items-center justify-center">
               <span className="text-gray-400 text-3xl">
                 {card.name
                   ?.split(" ")
@@ -222,8 +222,8 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
         <div className="bg-gray-100 px-6 pt-12 pb-6 -mt-16 space-y-6">
 
           {/* QR Code - Unique for each employee */}
-          <div className="flex flex-col items-center space-y-3">
-            <div className="p-6 bg-white rounded-xl shadow-sm">
+          <div className="flex flex-col items-center space-y-3 mt-2">
+            <div className="p-6 bg-white rounded-xl shadow-sm border-4 border-green-800">
               <QRCodeSVG
                 value={cardUrl}
                 size={220}
@@ -232,11 +232,11 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 fgColor="#1a5f3f"
                 bgColor="#ffffff"
                 imageSettings={
-                  company?.logo_url
+                  company?.logo_url 
                     ? {
-                        src: company.logo_url,
-                        height: 60,
-                        width: 60,
+                        src: company.logo_url, 
+                        height: 30,
+                        width: 30,
                         excavate: true,
                       }
                     : undefined
@@ -244,7 +244,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
               />
             </div>
             <p className="text-sm text-gray-600 text-center">
-              Scan to view digital business card
+              Scan the QR code to view digital business card
             </p>
           </div>
 
@@ -289,7 +289,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
                     title="Share on Facebook"
                   >
-                    <Facebook className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
+                    <FaMeta className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                   </button>
                 )}
                 {company?.instagram_url && (

@@ -10,7 +10,6 @@ import type { EmployeeWithCard } from "@/lib/types";
 import {
   Mail,
   Globe,
-  Facebook,
   Linkedin,
   Instagram,
   Save,
@@ -20,6 +19,7 @@ import {
   ChevronRight,
   MessageCircle,
 } from "lucide-react";
+import { FaMeta } from "react-icons/fa6";
 
 export default function EmployeeCardPage() {
   const params = useParams();
@@ -396,7 +396,7 @@ export default function EmployeeCardPage() {
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
                   >
-                    <Facebook className="h-6 w-6" />
+                    <FaMeta className="h-6 w-6" />
                   </a>
                 )}
                 {company.linkedin_url && (
