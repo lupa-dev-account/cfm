@@ -49,7 +49,7 @@ const phoneValidation = z.string().refine(
 const textOnlyValidation = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required`).refine(
     (value) => /^[a-zA-Z\s]+$/.test(value),
-    { message: `${fieldName} can only contain letters and spaces` }
+        { message: `${fieldName} can only contain letters and spaces` }
   );
 
 const employeeSchema = z.object({
@@ -531,6 +531,8 @@ export function EmployeeForm({
     </Dialog>
   );
 }
+
+
 
 
 
