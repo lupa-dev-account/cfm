@@ -42,6 +42,7 @@ next-env.d.ts
 scripts/update-passwords*.sh
 scripts/*password*.sh
 scripts/*credentials*.sh
+scripts/*-automated.html.local
 
 # Temporary assets and QR codes
 assets/qr_code.png
