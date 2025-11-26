@@ -7,19 +7,123 @@ import { createClient } from "@/lib/supabase/client";
 import { Loading } from "@/components/ui/loading";
 import { ShareModal } from "@/app/components/card/share-modal";
 import type { EmployeeWithCard } from "@/lib/types";
+import type { Database } from "@/lib/types/database";
+
 import {
-  Mail,
-  Globe,
-  Linkedin,
-  Instagram,
-  Save,
-  Share2,
-  PhoneCall,
-  ChevronLeft,
-  ChevronRight,
-  MessageCircle,
-} from "lucide-react";
-import { FaMeta } from "react-icons/fa6";
+  FaMeta,
+  FaWhatsapp,
+  FaLinkedin,
+  FaInstagram
+} from "react-icons/fa6";
+import {
+  MdEmail,
+  MdPhone,
+  MdShare,
+  MdSave
+} from "react-icons/md";
+import {
+  TbWorld,
+  TbChevronLeft,
+  TbChevronRight
+} from "react-icons/tb";
+
+type ContactItemProps = {
+  icon: React.ElementType;
+  href: string;
+  children: React.ReactNode;
+  external?: boolean; // for links that should open in a new tab
+};
+
+const ContactItem: React.FC<ContactItemProps> = ({ icon: Icon, href, children, external }) => {
+  return (
+    <div className="flex items-center gap-4 p-5 bg-white border-2 border-green-700 rounded-xl">
+      <Icon className="p-2 h-12 w-12 bg-green-700 text-white rounded-full flex-shrink-0" />
+      <a
+        href={href}
+        className="text-gray-900 text-lg font-medium hover:text-green-700 flex-1 break-all"
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
+        {children}
+      </a>
+    </div>
+  );
+};
+
+
+type SectionTitleProps = {
+  children: React.ReactNode;
+};
+
+const SectionTitle: React.FC<SectionTitleProps> = ({ children }) => (
+  <h2 className="text-3xl font-bold text-center text-black mb-6 relative w-fit mx-auto">
+    {children}
+    <span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-20 h-[4px] bg-green-700 rounded"></span>
+  </h2>
+);
+
+
+type CompanyService = Database["public"]["Tables"]["company_services"]["Row"];
+
+type ServiceCardProps = {
+  service: CompanyService;
+  websiteUrl?: string | null;
+};
+
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
+  <div className="w-full rounded-xl bg-gray-50 p-6 flex flex-col items-center text-center">
+    {service.icon_name && (
+      <>
+        {service.icon_name.startsWith("http") ? (
+          <div className="mb-6 flex justify-center">
+            <div className="relative w-32 h-32 md:w-40 md:h-40">
+              <Image
+                src={service.icon_name}
+                alt={service.title}
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="text-6xl md:text-7xl mb-6">
+            {service.icon_name}
+          </div>
+        )}
+      </>
+    )}
+
+    <h3 className="font-semibold text-gray-900 mb-2 text-lg md:text-xl">
+      {service.title}
+    </h3>
+
+    <p className="text-sm md:text-base text-gray-600 mb-6">
+      {service.description}
+    </p>
+
+    {websiteUrl && (
+      <a
+        href={websiteUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-green-600 text-white px-6 py-3 rounded text-sm md:text-base hover:bg-green-700 inline-block"
+      >
+        Learn More
+      </a>
+    )}
+  </div>
+);
+
+
+// Shared class names for repeated styles
+const carouselButtonBase =
+  "absolute top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50";
+
+const moreTileClass =
+  "flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors";
+
+const moreIconClass = "h-5 w-5 text-green-600";
+const moreLabelClass = "text-xs text-gray-900";
+
 
 export default function EmployeeCardPage() {
   const params = useParams();
@@ -163,6 +267,15 @@ export default function EmployeeCardPage() {
     setServiceIndex((prev) => (prev - 1 + services.length) % services.length);
   };
 
+  const visibleServices: CompanyService[] = [];
+const maxVisible = Math.min(services.length, 2); // show up to 2 cards like the prototype
+
+for (let i = 0; i < maxVisible; i++) {
+  const index = (serviceIndex + i) % services.length;
+  visibleServices.push(services[index]);
+}
+
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Centered container with max-width */}
@@ -234,124 +347,82 @@ export default function EmployeeCardPage() {
         <main className="px-4 py-6">
 
           {/* Contact Section */}
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
-              Contact
-            </h2>
-            <div className="space-y-3">
-              {contactLinks.phone && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
-                  <MessageCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <a
-                    href={`tel:${contactLinks.phone}`}
-                    className="text-gray-900 hover:text-green-600 flex-1 break-all"
-                  >
-                    {contactLinks.phone}
-                  </a>
-                </div>
-              )}
-              {contactLinks.email && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
-                  <Mail className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <a
-                    href={`mailto:${contactLinks.email}`}
-                    className="text-gray-900 hover:text-green-600 flex-1 break-all"
-                  >
-                    {contactLinks.email}
-                  </a>
-                </div>
-              )}
-              {company?.website_url && (
-                <div className="flex items-center gap-3 p-4 bg-white border border-green-800 rounded">
-                  <Globe className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <a
-                    href={company.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-900 hover:text-green-600 flex-1 break-all"
-                  >
-                    {company.website_url}
-                  </a>
-                </div>
-              )}
-            </div>
-          </section>
+          <section className="mb-10">
+          <SectionTitle>Contact</SectionTitle>
+
+
+  <div className="space-y-5">
+    {contactLinks.phone && (
+      <ContactItem icon={FaWhatsapp} href={`tel:${contactLinks.phone}`}>
+        {contactLinks.phone}
+      </ContactItem>
+    )}
+
+    {contactLinks.email && (
+      <ContactItem icon={MdEmail} href={`mailto:${contactLinks.email}`}>
+        {contactLinks.email}
+      </ContactItem>
+    )}
+
+    {company?.website_url && (
+      <ContactItem icon={TbWorld} href={company.website_url} external>
+        {company.website_url}
+      </ContactItem>
+    )}
+  </div>
+</section>
+
 
           {/* Services Section with Carousel */}
           {services.length > 0 && (
-            <section className="mb-6">
-              <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
-                Services
-              </h2>
-              <div className="relative">
-                {services.length > 1 && (
-                  <button
-                    onClick={prevService}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50"
-                    aria-label="Previous service"
-                  >
-                    <ChevronLeft className="h-5 w-5 text-green-600" />
-                  </button>
-                )}
-                <div className={services.length > 1 ? "px-12" : ""}>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="p-6 border border-green-800 rounded text-center">
-                      {services[serviceIndex].icon_name && (
-                        <>
-                          {services[serviceIndex].icon_name.startsWith('http') ? (
-                            <div className="mb-4 flex justify-center">
-                              <div className="relative w-24 h-24">
-                                <Image
-                                  src={services[serviceIndex].icon_name}
-                                  alt={services[serviceIndex].title}
-                                  fill
-                                  className="object-contain"
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-5xl mb-4">{services[serviceIndex].icon_name}</div>
-                          )}
-                        </>
-                      )}
-                      <h3 className="font-semibold text-gray-900 mb-2 text-base">
-                        {services[serviceIndex].title}
-                      </h3>
-                      <p className="text-xs text-gray-600 mb-4">
-                        {services[serviceIndex].description}
-                      </p>
-                      {company?.website_url && (
-                        <a
-                          href={company.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 inline-block"
-                        >
-                          Learn More
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {services.length > 1 && (
-                  <button
-                    onClick={nextService}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-green-800 rounded-full p-2 hover:bg-green-50"
-                    aria-label="Next service"
-                  >
-                    <ChevronRight className="h-5 w-5 text-green-600" />
-                  </button>
-                )}
-              </div>
-            </section>
-          )}
+  <section className="mb-6">
+    <SectionTitle>Services</SectionTitle>
+
+    <div className="relative">
+      {services.length > 1 && (
+        <button
+          onClick={prevService}
+          className={`${carouselButtonBase} -left-2`}
+          aria-label="Previous service"
+        >
+          <TbChevronLeft className="h-5 w-5 text-green-600" />
+        </button>
+      )}
+
+      <div className="px-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {visibleServices.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              websiteUrl={company?.website_url}
+            />
+          ))}
+        </div>
+      </div>
+
+      {services.length > 1 && (
+        <button
+          onClick={nextService}
+          className={`${carouselButtonBase} -right-2`}
+          aria-label="Next service"
+        >
+          <TbChevronRight className="h-5 w-5 text-green-600" />
+        </button>
+      )}
+    </div>
+  </section>
+)}
+
+
+
 
           {/* Business Hours */}
           {businessHours && (
             <section className="mb-6">
-              <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
+              <SectionTitle>
                 Business Hours
-              </h2>
+              </SectionTitle>
               <div className="space-y-0">
                 {[
                   { day: "Monday", key: "monday" },
@@ -406,7 +477,7 @@ export default function EmployeeCardPage() {
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
                   >
-                    <Linkedin className="h-6 w-6" />
+                    <FaLinkedin className="h-6 w-6" />
                   </a>
                 )}
                 {company.instagram_url && (
@@ -416,7 +487,7 @@ export default function EmployeeCardPage() {
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
                   >
-                    <Instagram className="h-6 w-6" />
+                    <FaInstagram className="h-6 w-6" />
                   </a>
                 )}
               </div>
@@ -424,31 +495,33 @@ export default function EmployeeCardPage() {
           )}
 
           {/* More Section */}
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold text-black text-center mb-4 underline">
-              More
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              <button className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors">
-                <Save className="h-5 w-5 text-green-600" />
-                <span className="text-xs text-gray-900">Save</span>
-              </button>
-              <button
-                onClick={() => setShareModalOpen(true)}
-                className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors"
-              >
-                <Share2 className="h-5 w-5 text-green-600" />
-                <span className="text-xs text-gray-900">Share</span>
-              </button>
-              <a
-                href={`tel:${contactLinks.phone}`}
-                className="flex flex-col items-center gap-2 p-4 border border-green-800 rounded hover:bg-green-50 transition-colors"
-              >
-                <PhoneCall className="h-5 w-5 text-green-600" />
-                <span className="text-xs text-gray-900">Contact</span>
-              </a>
-            </div>
-          </section>
+<section className="mb-6">
+  <SectionTitle>More</SectionTitle>
+
+  <div className="grid grid-cols-3 gap-3">
+    <button className={moreTileClass}>
+      <MdSave className={moreIconClass} />
+      <span className={moreLabelClass}>Save</span>
+    </button>
+
+    <button
+      onClick={() => setShareModalOpen(true)}
+      className={moreTileClass}
+    >
+      <MdShare className={moreIconClass} />
+      <span className={moreLabelClass}>Share</span>
+    </button>
+
+    <a
+      href={`tel:${contactLinks.phone}`}
+      className={moreTileClass}
+    >
+      <MdPhone className={moreIconClass} />
+      <span className={moreLabelClass}>Contact</span>
+    </a>
+  </div>
+</section>
+
         </main>
 
         {/* Footer */}
