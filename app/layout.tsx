@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -14,15 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <Script
-          src="https://elfsightcdn.com/platform.js"
-          strategy="afterInteractive"
-        />
-      </head>
       <body>
+        <LanguageSwitcher />
         {children}
-        <div className="elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e" data-elfsight-app-lazy></div>
       </body>
     </html>
   );

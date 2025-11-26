@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Bem-vindo",
+    "dashboard": "Painel de administração da empresa",
+    "settings": "Configurações da empresa",
+    "employees": "Colaboradores",
+    "services": "Serviços",
+    "logout": "Sair",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "add": "Adicionar",
+    "search": "Pesquisar",
+    "loading": "Carregando..."
+  },
+  "auth": {
+    "signIn": "Entrar",
+    "signUp": "Inscrever-se",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu a senha?",
+    "dontHaveAccount": "Não tem uma conta?",
+    "alreadyHaveAccount": "Já tem uma conta?"
+  }
+}
