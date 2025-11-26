@@ -22,6 +22,9 @@ export interface Company {
   logo_url: string | null;
   footer_text: string | null;
   website_url: string | null;
+  linkedin_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
   created_at: string;
 }
 
