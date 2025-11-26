@@ -70,12 +70,12 @@ type ServiceCardProps = {
 };
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
-  <div className="w-full h-full rounded-xl bg-gray-50 p-6 flex flex-col items-center text-center">
+  <div className="w-full h-full rounded-xl bg-gray-100 border border-gray-200 p-4 md:p-5 flex flex-col items-center text-center">
     {service.icon_name && (
       <>
         {service.icon_name.startsWith("http") ? (
-          <div className="mb-6 flex justify-center">
-            <div className="relative w-32 h-32 md:w-40 md:h-40 bg-gray-100">
+          <div className="mb-4 flex justify-center">
+            <div className="relative w-24 h-24 md:w-28 md:h-28">
               <Image
                 src={service.icon_name}
                 alt={service.title}
@@ -85,19 +85,18 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
             </div>
           </div>
         ) : (
-          <div className="text-6xl md:text-7xl mb-6">
+          <div className="text-5xl md:text-6xl mb-4">
             {service.icon_name}
           </div>
         )}
       </>
     )}
 
-    <h3 className="font-semibold text-gray-900 mb-2 text-lg md:text-xl">
+    <h3 className="font-semibold text-gray-900 mb-1 text-base md:text-lg">
       {service.title}
     </h3>
 
-    {/* description clamped with ... */}
-    <p className="text-sm md:text-base text-gray-600 mb-4 line-clamp-3">
+    <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-3">
       {service.description}
     </p>
 
@@ -106,13 +105,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
         href={websiteUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto bg-green-800 text-white px-6 py-3 rounded text-sm md:text-base hover:bg-green-700 inline-block"
+        className="mt-auto bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
       >
         Learn More
       </a>
     )}
   </div>
 );
+
 
 
 type SocialIconProps = {
@@ -245,6 +245,8 @@ function generateVCard(card: EmployeeWithCard): string {
   return vcard;
 }
 
+
+
 export default function EmployeeCardPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -252,9 +254,23 @@ export default function EmployeeCardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [serviceIndex, setServiceIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const supabase = createClient();
 
+  useEffect(() => {
+    const checkIsMobile = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+  
   useEffect(() => {
     async function loadCard() {
       if (!slug) {
@@ -353,6 +369,47 @@ export default function EmployeeCardPage() {
     loadCard();
   }, [slug, supabase]);
 
+  // Auto-rotate services carousel
+  useEffect(() => {
+    if (!card?.services) return;
+
+    const services = card.services;
+    const itemsPerSlide = isMobile ? 1 : 2;
+    const slideCount = Math.ceil(services.length / itemsPerSlide);
+
+    if (slideCount <= 1) return;
+
+    const id = setInterval(() => {
+      setServiceIndex((prev) => (prev + 1) % slideCount);
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, [card?.services, isMobile]);
+
+  // Reset slide index if it's out of range when services/screen size changes
+  useEffect(() => {
+    if (!card?.services) return;
+    const itemsPerSlide = isMobile ? 1 : 2;
+    const slideCount = Math.ceil(card.services.length / itemsPerSlide);
+    if (serviceIndex >= slideCount) {
+      setServiceIndex(0);
+    }
+  }, [card?.services, isMobile, serviceIndex]);
+
+  const handleDownloadVCard = () => {
+    if (!card) return;
+    const vCardData = generateVCard(card);
+    const blob = new Blob([vCardData], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${card.name?.replace(/\s+/g, "-") || "contact"}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -379,43 +436,22 @@ export default function EmployeeCardPage() {
   const company = card.company;
   const services = card.services || [];
 
+  // Build slides based on screen size
+  const itemsPerSlide = isMobile ? 1 : 2;
+  const slides: CompanyService[][] = [];
+  for (let i = 0; i < services.length; i += itemsPerSlide) {
+    slides.push(services.slice(i, i + itemsPerSlide));
+  }
+
   const nextService = () => {
-    setServiceIndex((prev) => (prev + 1) % services.length);
+    setServiceIndex((prev) => (prev + 1) % slides.length);
   };
 
   const prevService = () => {
-    setServiceIndex((prev) => (prev - 1 + services.length) % services.length);
+    setServiceIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
-
-  const handleDownloadVCard = () => {
-    const vCardData = generateVCard(card);
-    const blob = new Blob([vCardData], { type: "text/vcard" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${card.name?.replace(/\s+/g, "-") || "contact"}.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const showCarousel = services.length > 2;
-
-  let visibleServices: CompanyService[];
   
-  if (showCarousel) {
-    const maxVisible = 2;
-    visibleServices = [];
-  
-    for (let i = 0; i < maxVisible; i++) {
-      const index = (serviceIndex + i) % services.length;
-      visibleServices.push(services[index]);
-    }
-  } else {
-    // 0, 1, or 2 services: just show them all, no arrows
-    visibleServices = services as CompanyService[];
-  }
+
   
 
   return (
@@ -516,12 +552,12 @@ export default function EmployeeCardPage() {
 
 
           {/* Services Section with Carousel */}
-          {services.length > 0 && (
+          {slides.length > 0 && (
   <section className="mb-6">
     <SectionTitle>Services</SectionTitle>
 
     <div className="relative">
-      {showCarousel && (
+      {slides.length > 1 && (
         <button
           onClick={prevService}
           className={`${carouselButtonBase} -left-2`}
@@ -531,19 +567,37 @@ export default function EmployeeCardPage() {
         </button>
       )}
 
-      <div className="px-2">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          {visibleServices.map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              websiteUrl={company?.website_url}
-            />
+      {/* Slider viewport */}
+      <div className="overflow-hidden px-2">
+        <div
+          className="flex transition-transform duration-700 ease-in-out"
+          style={{ transform: `translateX(-${serviceIndex * 100}%)` }}
+        >
+          {slides.map((slide, idx) => (
+            <div key={idx} className="min-w-full">
+            <div
+              className={
+                slide.length === 1 && !isMobile
+                  ? "grid grid-cols-1 place-items-center gap-4 items-stretch"
+                  : "grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"
+              }
+            >
+              {slide.map((service) => (
+                <div key={service.id} className="w-full">
+                  <ServiceCard
+                    service={service}
+                    websiteUrl={company?.website_url}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
           ))}
         </div>
       </div>
 
-      {showCarousel && (
+      {slides.length > 1 && (
         <button
           onClick={nextService}
           className={`${carouselButtonBase} -right-2`}
@@ -555,6 +609,8 @@ export default function EmployeeCardPage() {
     </div>
   </section>
 )}
+
+
 
 
           {/* Business Hours */}

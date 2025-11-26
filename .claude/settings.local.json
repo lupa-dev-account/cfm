@@ -12,7 +12,22 @@
       "Bash(node scripts/fix-invalid-photo-urls.js:*)",
       "Bash(node scripts/fix-company-logo.js:*)",
       "Bash(node scripts/list-uploaded-images.js:*)",
-      "Bash(node scripts/apply-uploaded-images.js:*)"
+      "Bash(node scripts/apply-uploaded-images.js:*)",
+      "Bash(git add:*)",
+      "Bash(node scripts/check-services.js:*)",
+      "Bash(node scripts/list-service-images.js:*)",
+      "Bash(node scripts/set-business-hours.js:*)",
+      "Bash(node -e:*)",
+      "Bash(node scripts/fix-employee-linkages.js:*)",
+      "Bash(node scripts/apply-rls-fix.js:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(node scripts/list-services.js:*)",
+      "Bash(node scripts/add-service.js:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)"
     ],
     "deny": [],
     "ask": []
