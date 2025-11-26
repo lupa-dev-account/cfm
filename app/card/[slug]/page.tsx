@@ -432,8 +432,9 @@ export default function EmployeeCardPage() {
   const theme = card.theme as any;
   const contactLinks = card.contact_links;
   const socialLinks = card.social_links;
-  const businessHours = card.business_hours;
   const company = card.company;
+  // Use company business hours (all employees share same hours)
+  const businessHours = company?.business_hours || card.business_hours;
   const services = card.services || [];
 
   // Build slides based on screen size
@@ -613,8 +614,7 @@ export default function EmployeeCardPage() {
 
 
 
-          {/* Business Hours */}
-          {businessHours && (
+          {/* Business Hours - Always Show */}
   <section className="mb-6">
     <div className="bg-gray-100 rounded-xl px-4 py-6">
       <SectionTitle>Business Hours</SectionTitle>
@@ -630,8 +630,8 @@ export default function EmployeeCardPage() {
     { day: "Saturday", key: "saturday" },
     { day: "Sunday", key: "sunday" },
   ].map(({ day, key }) => {
-    const hours = businessHours[key as keyof typeof businessHours];
-    const isClosed = hours?.closed || !hours?.open || !hours?.close;
+    const hours = businessHours?.[key as keyof typeof businessHours];
+    const isClosed = !businessHours || hours?.closed || !hours?.open || !hours?.close;
     const label = isClosed ? "Closed" : `${hours.open} - ${hours.close}`;
 
     return (
@@ -656,7 +656,6 @@ export default function EmployeeCardPage() {
 
     </div>
   </section>
-)}
 
 
           {/* Social Media Links - Company social media */}
