@@ -48,7 +48,7 @@ const phoneValidation = z.string().refine(
 // Validation for text-only fields (names)
 const textOnlyValidation = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required`).refine(
-    (value) => /^[a-zA-Z\s]+$/.test(value),
+        (value) => /^[\p{L}\s]+$/u.test(value),
     { message: `${fieldName} can only contain letters and spaces` }
   );
 
