@@ -227,8 +227,8 @@ export function EmployeeForm({
         title: data.title,
         photoUrl: usePhotoUrl && data.photoUrl ? data.photoUrl : undefined,
         photoFile: !usePhotoUrl && photoFile ? photoFile : undefined,
-        contactLinks: data.contactLinks,
-        businessHours: data.businessHours,
+        contactLinks: data.contactLinks as any,
+        businessHours: data.businessHours as any,
         isActive: data.isActive,
       };
 
@@ -531,6 +531,7 @@ export function EmployeeForm({
     </Dialog>
   );
 }
+
 
 
 

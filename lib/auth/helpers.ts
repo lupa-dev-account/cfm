@@ -39,8 +39,8 @@ export async function getCurrentUser() {
   return {
     id: user.id,
     email: user.email!,
-    role: userData.role as UserRole,
-    company_id: userData.company_id,
+    role: (userData as any).role as UserRole,
+    company_id: (userData as any).company_id,
   };
 }
 

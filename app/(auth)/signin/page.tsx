@@ -95,10 +95,10 @@ export default function SignInPage() {
           .select("id, email, role")
           .eq("email", authData.user.email!)
           .single();
-        
+
         if (emailCheck) {
           setError(
-            `UUID mismatch detected! Auth ID: ${authData.user.id}, Database ID: ${emailCheck.id}. Please update the database user ID to match the Auth ID. See browser console for details.`
+            `UUID mismatch detected! Auth ID: ${authData.user.id}, Database ID: ${(emailCheck as any).id}. Please update the database user ID to match the Auth ID. See browser console for details.`
           );
         } else {
           setError(
@@ -119,7 +119,7 @@ export default function SignInPage() {
       }
 
       // Redirect based on role
-      const redirectPath = await getRedirectPath(userData.role as any);
+      const redirectPath = await getRedirectPath((userData as any).role);
       router.push(redirectPath);
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");

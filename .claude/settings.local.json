@@ -27,7 +27,19 @@
       "Bash(git push:*)",
       "Bash(node scripts/list-services.js:*)",
       "Bash(node scripts/add-service.js:*)",
-      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)"
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)",
+      "Bash(node scripts/update-company-hours.js:*)",
+      "Bash(git log:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh run view:*)",
+      "Bash(git pull:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm outdated:*)"
     ],
     "deny": [],
     "ask": []

@@ -78,7 +78,7 @@ export default function SignUpPage() {
           email: data.email,
           full_name: data.fullName,
           role: "user", // Default role
-        });
+        } as any);
 
       if (userError) {
         console.error("User creation error:", userError);
@@ -268,6 +268,7 @@ export default function SignUpPage() {
     </div>
   );
 }
+
 
 
 

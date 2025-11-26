@@ -80,14 +80,14 @@ export default function CompanySettingsPage() {
 
       setCompany(data);
       reset({
-        name: data.name || "",
-        description: data.description || "",
-        logo_url: data.logo_url || "",
-        website_url: data.website_url || "",
-        linkedin_url: data.linkedin_url || "",
-        facebook_url: data.facebook_url || "",
-        instagram_url: data.instagram_url || "",
-        footer_text: data.footer_text || "",
+        name: (data as any).name || "",
+        description: (data as any).description || "",
+        logo_url: (data as any).logo_url || "",
+        website_url: (data as any).website_url || "",
+        linkedin_url: (data as any).linkedin_url || "",
+        facebook_url: (data as any).facebook_url || "",
+        instagram_url: (data as any).instagram_url || "",
+        footer_text: (data as any).footer_text || "",
       });
     } catch (err: any) {
       setError(err.message || "Failed to load company data");
@@ -102,7 +102,7 @@ export default function CompanySettingsPage() {
     setSuccess(false);
 
     try {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from("companies")
         .update({
           name: data.name,
