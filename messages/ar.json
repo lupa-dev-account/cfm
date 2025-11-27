@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "مرحبا",
+    "dashboard": "لوحة التحكم",
+    "settings": "الإعدادات",
+    "employees": "الموظفون",
+    "services": "الخدمات",
+    "logout": "تسجيل الخروج",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "add": "إضافة",
+    "search": "بحث",
+    "loading": "جار التحميل..."
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "التسجيل",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟"
+  }
+}

@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 :root {
   --background: #ffffff;
@@ -24,28 +24,6 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Elfsight Language Translator Widget Positioning */
-.elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e {
-  position: fixed !important;
-  top: 20px !important;
-  right: 20px !important;
-  z-index: 9999 !important;
-  background: transparent !important;
-}
-
-/* Hide the "Free Website Translator Widget" text */
-.elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e a[href*="elfsight.com"] {
-  display: none !important;
-}
-
-/* Mobile responsive positioning */
-@media (max-width: 768px) {
-  .elfsight-app-c4232d46-680e-4396-b4a8-dcdc0cdcc52e {
-    top: 10px !important;
-    right: 10px !important;
-  }
 }
 
 /* Phone Input Custom Styles */

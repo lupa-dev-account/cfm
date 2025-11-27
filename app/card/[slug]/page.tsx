@@ -301,13 +301,13 @@ export default function EmployeeCardPage() {
         }
 
         // Extract theme data
-        const theme = data.theme as any;
+        const theme = (data as any).theme;
 
         // Try to fetch user/employee data (optional - may not be linked properly)
         const { data: userData, error: userError } = await supabase
           .from("users")
           .select("*")
-          .eq("id", data.employee_id)
+          .eq("id", (data as any).employee_id)
           .single();
 
         if (userError) {
@@ -315,7 +315,7 @@ export default function EmployeeCardPage() {
         }
 
         // Determine company_id from user relationship or fallback to theme
-        const companyId = userData?.company_id || theme?.company_id;
+        const companyId = (userData as any)?.company_id || theme?.company_id;
 
         // Fetch company data and services
         let companyData = null;
@@ -350,9 +350,9 @@ export default function EmployeeCardPage() {
 
         // Create card with metadata - prefer theme data, fallback to user data
         const cardWithMetadata: EmployeeWithCard = {
-          ...data,
-          name: theme?.name || (userData ? `${userData.first_name || ''} ${userData.last_name || ''}`.trim() : null) || "Employee",
-          title: theme?.title || userData?.title || "",
+          ...(data as any),
+          name: theme?.name || (userData ? `${(userData as any).first_name || ''} ${(userData as any).last_name || ''}`.trim() : null) || "Employee",
+          title: theme?.title || (userData as any)?.title || "",
           company: companyData,
           services: servicesData,
         };

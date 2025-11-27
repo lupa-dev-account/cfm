@@ -41,6 +41,7 @@ export interface CompanyService {
 
 export interface ContactLinks {
   phone: string; // REQUIRED
+  phone2?: string; // OPTIONAL secondary phone
   whatsapp?: string; // OPTIONAL
   email: string; // REQUIRED
   website?: string; // OPTIONAL (company website)

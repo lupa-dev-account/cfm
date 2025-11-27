@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Willkommen",
+    "dashboard": "Dashboard",
+    "settings": "Einstellungen",
+    "employees": "Mitarbeiter",
+    "services": "Dienstleistungen",
+    "logout": "Abmelden",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "search": "Suchen",
+    "loading": "Lädt..."
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "dontHaveAccount": "Sie haben kein Konto?",
+    "alreadyHaveAccount": "Sie haben bereits ein Konto?"
+  }
+}

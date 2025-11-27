@@ -122,7 +122,7 @@ export async function createEmployee(
   // Default empty social links (since these are now in companies table)
   const socialLinks = employeeData.socialLinks || { linkedin: "" };
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("employee_cards")
     .insert({
       employee_id: employeeId,
@@ -165,13 +165,13 @@ export async function updateEmployee(
   }
 
   // Handle photo upload if new file provided
-  let photoUrl = employeeData.photoUrl ?? existingCard.photo_url;
+  let photoUrl = employeeData.photoUrl ?? (existingCard as any).photo_url;
   if (employeeData.photoFile) {
     photoUrl = await uploadEmployeePhoto(employeeData.photoFile, employeeId);
   }
 
   // Update theme with name/title if provided, preserve company_id
-  const theme = existingCard.theme || {};
+  const theme = (existingCard as any).theme || {};
   if (employeeData.firstName && employeeData.lastName) {
     theme.name = `${employeeData.firstName} ${employeeData.lastName}`;
   }
@@ -204,7 +204,7 @@ export async function updateEmployee(
   }
   updateData.theme = theme;
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("employee_cards")
     .update(updateData)
     .eq("employee_id", employeeId)
@@ -243,7 +243,7 @@ export async function toggleEmployeeStatus(
 ): Promise<EmployeeCard> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("employee_cards")
     .update({ is_active: isActive, updated_at: new Date().toISOString() })
     .eq("employee_id", employeeId)

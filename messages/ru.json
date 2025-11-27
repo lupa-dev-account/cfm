@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Добро пожаловать",
+    "dashboard": "Панель управления",
+    "settings": "Настройки",
+    "employees": "Сотрудники",
+    "services": "Услуги",
+    "logout": "Выйти",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "add": "Добавить",
+    "search": "Поиск",
+    "loading": "Загрузка..."
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "forgotPassword": "Забыли пароль?",
+    "dontHaveAccount": "Нет аккаунта?",
+    "alreadyHaveAccount": "Уже есть аккаунт?"
+  }
+}

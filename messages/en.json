@@ -1,0 +1,33 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "dashboard": "Dashboard",
+    "companyDashboard": "Company Admin Dashboard",
+    "companySettings": "Company Settings",
+    "settings": "Settings",
+    "employees": "Employees",
+    "services": "Services",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "addEmployee": "Add Employee",
+    "search": "Search",
+    "loading": "Loading...",
+    "companyNotAssigned": "Company Not Assigned",
+    "companyNotAssignedDesc": "Your account is not associated with a company. Please contact support.",
+    "totalEmployees": "Total Employees",
+    "active": "active"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  }
+}

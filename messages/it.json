@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Benvenuto",
+    "dashboard": "Dashboard",
+    "settings": "Impostazioni",
+    "employees": "Dipendenti",
+    "services": "Servizi",
+    "logout": "Disconnetti",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "add": "Aggiungi",
+    "search": "Cerca",
+    "loading": "Caricamento..."
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signUp": "Registrati",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Password dimenticata?",
+    "dontHaveAccount": "Non hai un account?",
+    "alreadyHaveAccount": "Hai già un account?"
+  }
+}
