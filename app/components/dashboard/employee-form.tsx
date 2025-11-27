@@ -231,7 +231,7 @@ export function EmployeeForm({
     setError(null);
 
     try {
-      const formData: ServiceEmployeeFormData = {
+      const formData: any = {
         firstName: data.firstName,
         lastName: data.lastName,
         title: data.title,
