@@ -27,6 +27,15 @@ import { Upload, X } from "lucide-react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
+// Helper function to normalize phone number to E.164 format
+// E.164 format: +[country code][number] with no spaces or formatting
+// Example: "+258 84 6017 490" -> "+258846017490"
+const normalizePhoneNumber = (phone: string | undefined | null): string | undefined => {
+  if (!phone || phone.trim() === "") return undefined;
+  // Remove all spaces and formatting characters, keep only + and digits
+  return phone.replace(/[^\d+]/g, "");
+};
+
 // Custom validation for CFM email domains
 const cfmEmailValidation = z.string().email("Invalid email address").refine(
   (email) => {
@@ -198,9 +207,9 @@ export function EmployeeForm({
         photoUrl: employee.photo_url || "",
         contactLinks: {
           email: employee.contact_links.email,
-          phone: employee.contact_links.phone,
-          phone2: employee.contact_links.phone2 || "",
-          whatsapp: employee.contact_links.whatsapp || "",
+          phone: normalizePhoneNumber(employee.contact_links.phone) || "",
+          phone2: normalizePhoneNumber(employee.contact_links.phone2) || "",
+          whatsapp: normalizePhoneNumber(employee.contact_links.whatsapp) || "",
         },
         businessHours: employee.business_hours || undefined,
         isActive: employee.is_active,

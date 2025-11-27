@@ -10,6 +10,7 @@ import { ShareModal } from "@/app/components/card/share-modal";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { EmployeeWithCard } from "@/lib/types";
 import type { Database } from "@/lib/types/database";
+import { parsePhoneNumber, formatNumber } from "libphonenumber-js";
 
 import {
   FaMeta,
@@ -28,6 +29,30 @@ import {
   TbChevronLeft,
   TbChevronRight
 } from "react-icons/tb";
+
+// Format phone number for display using country-specific conventions
+// Uses libphonenumber-js to format according to each country's standards
+// Examples:
+//   Mozambique: +258846017490 -> +258 84 6017 490
+//   US: +14155552671 -> +1 415 555 2671
+//   UK: +442071838750 -> +44 20 7183 8750
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return phone;
+  try {
+    // Remove existing spaces first
+    const cleaned = phone.replace(/\s/g, "");
+    // Parse the phone number first
+    const phoneNumber = parsePhoneNumber(cleaned);
+    if (!phoneNumber) return cleaned;
+    // Format as INTERNATIONAL which includes country code with proper spacing
+    // This automatically uses the correct format for each country
+    return phoneNumber.formatInternational();
+  } catch (error) {
+    // If parsing fails, return cleaned version (E.164 format)
+    // This shouldn't happen if numbers are stored correctly, but fallback is safe
+    return phone.replace(/\s/g, "");
+  }
+};
 
 type ContactItemProps = {
   icon: React.ElementType;
@@ -591,14 +616,14 @@ export default function EmployeeCardPage() {
 
   <div className="space-y-3">
     {contactLinks.phone && (
-      <ContactItem icon={FaWhatsapp} href={`tel:${contactLinks.phone}`}>
-        {contactLinks.phone}
+      <ContactItem icon={FaWhatsapp} href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}>
+        {formatPhoneNumber(contactLinks.phone)}
       </ContactItem>
     )}
 
     {contactLinks.phone2 && (
-      <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone2}`}>
-        {contactLinks.phone2}
+      <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone2.replace(/\s/g, "")}`}>
+        {formatPhoneNumber(contactLinks.phone2)}
       </ContactItem>
     )}
 
@@ -761,7 +786,7 @@ export default function EmployeeCardPage() {
     </button>
 
     <a
-      href={`tel:${contactLinks.phone}`}
+      href={`tel:${contactLinks.phone?.replace(/\s/g, "") || ""}`}
       className={moreTileClass}
     >
       <MdPhone className={moreIconClass} />
