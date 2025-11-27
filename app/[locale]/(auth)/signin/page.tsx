@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getRedirectPath } from "@/lib/auth/helpers";
 import { Button } from "@/components/ui/button";
@@ -17,19 +18,21 @@ import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Mail, Lock } from "lucide-react";
 
-const signInSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type SignInFormData = z.infer<typeof signInSchema>;
-
 export default function SignInPage() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('auth');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isReturningUser, setIsReturningUser] = useState(false);
   const supabase = createClient();
+
+  const signInSchema = z.object({
+    email: z.string().email(t('invalidEmail')),
+    password: z.string().min(6, t('passwordMinLength')),
+  });
+
+  type SignInFormData = z.infer<typeof signInSchema>;
 
   useEffect(() => {
     // Check if user has existing session/cookies
@@ -137,7 +140,7 @@ export default function SignInPage() {
       <div className="w-full max-w-md">
         {/* Logo - Mobile only */}
         <div className="flex justify-center mb-8 md:hidden">
-          <Link href="/login">
+          <Link href={`/${locale}/home`}>
             <Image
               src="/assets/cfm_logo_light.webp"
               alt="CFM Logo"
@@ -152,12 +155,12 @@ export default function SignInPage() {
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl">
-              {isReturningUser ? "Welcome Back" : "Sign In"}
+              {isReturningUser ? t('welcomeBack') : t('signIn')}
             </CardTitle>
             <CardDescription>
-              {isReturningUser 
-                ? "Sign in to access your dashboard" 
-                : "Enter your credentials to continue"}
+              {isReturningUser
+                ? t('signInToAccess')
+                : t('enterCredentials')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -206,19 +209,19 @@ export default function SignInPage() {
                 <span className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                <span className="bg-white px-2 text-gray-500">{t('orContinueWith')}</span>
               </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
+                  {t('email')}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@company.com"
+                  placeholder={t('emailPlaceholder')}
                   {...register("email")}
                   disabled={isLoading}
                 />
@@ -229,11 +232,11 @@ export default function SignInPage() {
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
+                  {t('password')}
                 </label>
                 <PasswordInput
                   id="password"
-                  placeholder="Enter your password"
+                  placeholder={t('passwordPlaceholder')}
                   {...register("password")}
                   disabled={isLoading}
                 />
@@ -253,18 +256,18 @@ export default function SignInPage() {
                 {isLoading ? (
                   <>
                     <Loading size="sm" className="mr-2" />
-                    Signing in...
+                    {t('signingIn')}
                   </>
                 ) : (
-                  "Sign In"
+                  t('signIn')
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600">Don&apos;t have an account? </span>
-              <Link href="/signup" className="text-green-600 hover:text-green-700 font-medium">
-                Sign up
+              <span className="text-gray-600">{t('dontHaveAccount')} </span>
+              <Link href={`/${locale}/signup`} className="text-green-600 hover:text-green-700 font-medium">
+                {t('signUp')}
               </Link>
             </div>
           </CardContent>
