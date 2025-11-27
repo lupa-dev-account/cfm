@@ -91,11 +91,14 @@ export default function SignInPage() {
         .single();
 
       if (userError) {
-        console.error("User fetch error:", userError);
-        console.error("Auth User ID:", authData.user.id);
-        console.error("Auth User Email:", authData.user.email);
+        // Log error details only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error("User fetch error:", userError);
+          console.error("Auth User ID:", authData.user.id);
+          console.error("Auth User Email:", authData.user.email);
+        }
         
-        // Check if user exists by email (for debugging)
+        // Check if user exists by email
         const { data: emailCheck } = await supabase
           .from("users")
           .select("id, email, role")
@@ -116,7 +119,9 @@ export default function SignInPage() {
       }
 
       if (!userData) {
-        console.error("No user data found for ID:", authData.user.id);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("No user data found for ID:", authData.user.id);
+        }
         setError(
           `User not found in database. Auth User ID: ${authData.user.id}, Email: ${authData.user.email}. Please create the user in the database.`
         );
@@ -135,7 +140,9 @@ export default function SignInPage() {
 
   const handleSocialLogin = (provider: string) => {
     // Placeholder for social login
-    console.log(`Sign in with ${provider}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Sign in with ${provider}`);
+    }
   };
 
   return (

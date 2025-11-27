@@ -370,7 +370,9 @@ export default function EmployeeCardPage() {
           .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no user exists
 
         if (userError) {
-          console.warn("Could not fetch user data (may not be linked):", userError);
+          if (process.env.NODE_ENV === 'development') {
+            console.warn("Could not fetch user data (may not be linked):", userError);
+          }
         }
 
         // Determine company_id from user relationship or fallback to theme
@@ -398,13 +400,19 @@ export default function EmployeeCardPage() {
           servicesData = servicesResult.data || [];
 
           if (companyResult.error) {
-            console.error("Failed to fetch company data:", companyResult.error);
+            if (process.env.NODE_ENV === 'development') {
+              console.error("Failed to fetch company data:", companyResult.error);
+            }
           }
           if (servicesResult.error) {
-            console.error("Failed to fetch services data:", servicesResult.error);
+            if (process.env.NODE_ENV === 'development') {
+              console.error("Failed to fetch services data:", servicesResult.error);
+            }
           }
         } else {
-          console.warn("No company_id found in user or theme data");
+          if (process.env.NODE_ENV === 'development') {
+            console.warn("No company_id found in user or theme data");
+          }
         }
 
         // Create card with metadata - prefer theme data, fallback to user data
@@ -418,7 +426,9 @@ export default function EmployeeCardPage() {
 
         setCard(cardWithMetadata);
       } catch (err: any) {
-        console.error("Error loading card:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error loading card:", err);
+        }
         setError(err.message || "Failed to load card");
       } finally {
         setLoading(false);

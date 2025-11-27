@@ -100,7 +100,9 @@ export default function SignUpPage() {
 
   const handleSocialLogin = (provider: string) => {
     // Placeholder for social login
-    console.log(`Sign up with ${provider}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Sign up with ${provider}`);
+    }
   };
 
   return (

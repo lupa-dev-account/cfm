@@ -57,7 +57,9 @@ export default function CompanyDashboard() {
       const data = await getEmployeesByCompany(user.company_id);
       setEmployees(data);
     } catch (error: any) {
-      console.error("Failed to load employees:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to load employees:", error);
+      }
       alert(`Failed to load employees: ${error.message}`);
     } finally {
       setEmployeesLoading(false);
