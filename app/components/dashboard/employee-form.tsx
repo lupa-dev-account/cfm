@@ -46,6 +46,7 @@ const phoneValidation = z.string().refine(
 );
 
 // Validation for text-only fields (names)
+// Allows: letters, accents, spaces, periods, hyphens, apostrophes
 const textOnlyValidation = (fieldName: string) =>
   z
     .string()
@@ -57,7 +58,8 @@ const textOnlyValidation = (fieldName: string) =>
         const letterCount = Array.from(normalized).filter((char) =>
           /\p{L}/u.test(char)
         ).length;
-        return /^[\p{L}\p{M}\s]+$/u.test(normalized) && letterCount >= 3;
+        // Allow letters, marks (accents), spaces, periods, hyphens, apostrophes
+        return /^[\p{L}\p{M}\s.\-']+$/u.test(normalized) && letterCount >= 3;
       },
       { message: `${fieldName} must at least contain 3 letters` }
     );
@@ -367,8 +369,8 @@ export function EmployeeForm({
                 {...register("firstName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Allow Unicode letters, marks (accents), and spaces
-                  if (!/[\p{L}\p{M}\s]/u.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), spaces, periods, hyphens, apostrophes
+                  if (!/[\p{L}\p{M}\s.\-']/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
@@ -386,8 +388,8 @@ export function EmployeeForm({
                 {...register("lastName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Allow Unicode letters, marks (accents), and spaces
-                  if (!/[\p{L}\p{M}\s]/u.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), spaces, periods, hyphens, apostrophes
+                  if (!/[\p{L}\p{M}\s.\-']/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
