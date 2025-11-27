@@ -231,13 +231,19 @@ export function EmployeeForm({
     setError(null);
 
     try {
-      const formData: ServiceEmployeeFormData = {
+      const formData: any = {
         firstName: data.firstName,
         lastName: data.lastName,
         title: data.title,
         photoUrl: usePhotoUrl && data.photoUrl ? data.photoUrl : undefined,
         photoFile: !usePhotoUrl && photoFile ? photoFile : undefined,
-        contactLinks: data.contactLinks,
+        contactLinks: {
+          phone: data.contactLinks.phone!,
+          email: data.contactLinks.email!,
+          whatsapp: data.contactLinks.whatsapp || undefined,
+          phone2: undefined,
+          website: undefined,
+        },
         businessHours: data.businessHours,
         isActive: data.isActive,
       };
