@@ -1,0 +1,26 @@
+{
+  "common": {
+    "welcome": "Bienvenido",
+    "dashboard": "Panel de Control",
+    "settings": "Configuración",
+    "employees": "Empleados",
+    "services": "Servicios",
+    "logout": "Cerrar Sesión",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Agregar",
+    "search": "Buscar",
+    "loading": "Cargando..."
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?"
+  }
+}

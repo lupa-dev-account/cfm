@@ -45,11 +45,16 @@ const phoneValidation = z.string().refine(
   { message: "Invalid phone number" }
 );
 
-// Validation for text-only fields (names)
+// Validation for text-only fields (names) - allows accented characters and international names
 const textOnlyValidation = (fieldName: string) =>
   z.string().min(1, `${fieldName} is required`).refine(
-    (value) => /^[a-zA-Z\s]+$/.test(value),
-        { message: `${fieldName} can only contain letters and spaces` }
+    (value) => {
+      // Allow any Unicode letter, spaces, hyphens, apostrophes, and common accented characters
+      // This regex supports characters from Latin, Cyrillic, Greek, Arabic, Chinese, Japanese, etc.
+      const nameRegex = /^[a-zA-ZÀ-ÿĀ-žḀ-ỿ\u0370-\u03FF\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\s'-]+$/;
+      return nameRegex.test(value);
+    },
+    { message: `${fieldName} can only contain letters, spaces, hyphens, and apostrophes` }
   );
 
 const employeeSchema = z.object({
@@ -60,6 +65,13 @@ const employeeSchema = z.object({
   contactLinks: z.object({
     email: cfmEmailValidation,
     phone: phoneValidation,
+    phone2: z.string().optional().or(z.literal("")).refine(
+      (phone) => {
+        if (!phone || phone === "") return true; // Optional field
+        return isValidPhoneNumber(phone);
+      },
+      { message: "Invalid phone number" }
+    ),
     whatsapp: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
@@ -159,6 +171,7 @@ export function EmployeeForm({
       contactLinks: {
         email: "",
         phone: "",
+        phone2: "",
         whatsapp: "",
       },
       isActive: true,
@@ -179,6 +192,7 @@ export function EmployeeForm({
         contactLinks: {
           email: employee.contact_links.email,
           phone: employee.contact_links.phone,
+          phone2: employee.contact_links.phone2 || "",
           whatsapp: employee.contact_links.whatsapp,
         },
         businessHours: employee.business_hours || undefined,
@@ -444,6 +458,38 @@ export function EmployeeForm({
                 {errors.contactLinks?.phone && (
                   <p className="text-sm text-red-600">
                     {errors.contactLinks.phone.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone2">Secondary Phone (Optional)</Label>
+                <Controller
+                  name="contactLinks.phone2"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="Enter secondary phone number"
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
+                />
+                {errors.contactLinks?.phone2 && (
+                  <p className="text-sm text-red-600">
+                    {errors.contactLinks.phone2.message}
                   </p>
                 )}
               </div>

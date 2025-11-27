@@ -1,8 +1,10 @@
 {
   "common": {
     "welcome": "Bem-vindo",
-    "dashboard": "Painel de administração da empresa",
-    "settings": "Configurações da empresa",
+    "dashboard": "Painel",
+    "companyDashboard": "Painel de Administração da Empresa",
+    "companySettings": "Configurações da Empresa",
+    "settings": "Configurações",
     "employees": "Colaboradores",
     "services": "Serviços",
     "logout": "Sair",
@@ -11,8 +13,13 @@
     "edit": "Editar",
     "delete": "Excluir",
     "add": "Adicionar",
+    "addEmployee": "Adicionar Colaborador",
     "search": "Pesquisar",
-    "loading": "Carregando..."
+    "loading": "Carregando...",
+    "companyNotAssigned": "Empresa Não Atribuída",
+    "companyNotAssignedDesc": "Sua conta não está associada a uma empresa. Entre em contato com o suporte.",
+    "totalEmployees": "Total de Colaboradores",
+    "active": "ativo"
   },
   "auth": {
     "signIn": "Entrar",

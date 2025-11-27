@@ -2,6 +2,8 @@
   "common": {
     "welcome": "Welcome",
     "dashboard": "Dashboard",
+    "companyDashboard": "Company Admin Dashboard",
+    "companySettings": "Company Settings",
     "settings": "Settings",
     "employees": "Employees",
     "services": "Services",
@@ -11,8 +13,13 @@
     "edit": "Edit",
     "delete": "Delete",
     "add": "Add",
+    "addEmployee": "Add Employee",
     "search": "Search",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "companyNotAssigned": "Company Not Assigned",
+    "companyNotAssignedDesc": "Your account is not associated with a company. Please contact support.",
+    "totalEmployees": "Total Employees",
+    "active": "active"
   },
   "auth": {
     "signIn": "Sign In",
