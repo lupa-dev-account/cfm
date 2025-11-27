@@ -161,25 +161,25 @@ export default function CompanyDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Cards</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('activeCards')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {employees.filter((e) => e.is_active).length}
               </div>
-              <p className="text-xs text-gray-500">Currently active</p>
+              <p className="text-xs text-gray-500">{t('currentlyActive')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactive Cards</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('inactiveCards')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {employees.filter((e) => !e.is_active).length}
               </div>
-              <p className="text-xs text-gray-500">Currently disabled</p>
+              <p className="text-xs text-gray-500">{t('currentlyDisabled')}</p>
             </CardContent>
           </Card>
         </div>
@@ -189,9 +189,9 @@ export default function CompanyDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Employee Management</CardTitle>
+                <CardTitle>{t('employeeManagement')}</CardTitle>
                 <CardDescription>
-                  Manage your company employees and their digital business cards
+                  {t('employeeManagementDesc')}
                 </CardDescription>
               </div>
               <Button onClick={handleAddEmployee} size="lg">

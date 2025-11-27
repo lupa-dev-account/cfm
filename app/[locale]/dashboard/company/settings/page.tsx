@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,20 +18,19 @@ import type { Company } from "@/lib/types";
 import { ArrowLeft, Building2, Save } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-const companySchema = z.object({
-  name: z.string().min(1, "Company name is required"),
-  description: z.string().optional(),
-  logo_url: z.string().url("Invalid URL").optional().or(z.literal("")),
-  website_url: z.string().url("Invalid URL").optional().or(z.literal("")),
-  linkedin_url: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
-  facebook_url: z.string().url("Invalid Facebook URL").optional().or(z.literal("")),
-  instagram_url: z.string().url("Invalid Instagram URL").optional().or(z.literal("")),
-  footer_text: z.string().optional(),
-});
-
-type CompanyFormData = z.infer<typeof companySchema>;
+type CompanyFormData = {
+  name: string;
+  description?: string;
+  logo_url?: string;
+  website_url?: string;
+  linkedin_url?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  footer_text?: string;
+};
 
 export default function CompanySettingsPage() {
+  const t = useTranslations('common');
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [company, setCompany] = useState<Company | null>(null);
@@ -39,6 +39,18 @@ export default function CompanySettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const supabase = createClient();
+
+  // Create schema with translations
+  const companySchema = z.object({
+    name: z.string().min(1, t('companyNameRequired')),
+    description: z.string().optional(),
+    logo_url: z.string().url(t('invalidUrl')).optional().or(z.literal("")),
+    website_url: z.string().url(t('invalidUrl')).optional().or(z.literal("")),
+    linkedin_url: z.string().url(t('invalidLinkedInUrl')).optional().or(z.literal("")),
+    facebook_url: z.string().url(t('invalidFacebookUrl')).optional().or(z.literal("")),
+    instagram_url: z.string().url(t('invalidInstagramUrl')).optional().or(z.literal("")),
+    footer_text: z.string().optional(),
+  });
 
   const {
     register,
@@ -90,7 +102,7 @@ export default function CompanySettingsPage() {
         footer_text: (data as any).footer_text || "",
       });
     } catch (err: any) {
-      setError(err.message || "Failed to load company data");
+      setError(err.message || t('failedToLoadCompanyData'));
     }
   };
 
@@ -124,7 +136,7 @@ export default function CompanySettingsPage() {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to update company settings");
+      setError(err.message || t('failedToUpdateCompanySettings'));
     } finally {
       setSaving(false);
     }
@@ -154,14 +166,14 @@ export default function CompanySettingsPage() {
               onClick={() => router.push("/dashboard/company")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              {t('backToDashboard')}
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">Company Settings</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('companySettings')}</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button onClick={handleLogout} variant="outline">
-              Logout
+              {t('logout')}
             </Button>
           </div>
         </div>
@@ -173,9 +185,9 @@ export default function CompanySettingsPage() {
             <div className="flex items-center gap-3">
               <Building2 className="h-6 w-6 text-green-600" />
               <div>
-                <CardTitle>Company Information</CardTitle>
+                <CardTitle>{t('companyInformation')}</CardTitle>
                 <CardDescription>
-                  Update your company profile. This information will be displayed on all employee business cards.
+                  {t('companyInformationDesc')}
                 </CardDescription>
               </div>
             </div>
@@ -185,13 +197,13 @@ export default function CompanySettingsPage() {
               {/* Company Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  Company Name <span className="text-red-500">*</span>
+                  {t('companyName')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
                   {...register("name")}
                   disabled={saving}
-                  placeholder="e.g., CFM - Portos e Caminhos de Ferro de Moçambique"
+                  placeholder={t('companyNamePlaceholder')}
                 />
                 {errors.name && (
                   <p className="text-sm text-red-600">{errors.name.message}</p>
@@ -200,17 +212,17 @@ export default function CompanySettingsPage() {
 
               {/* Company Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Company Description</Label>
+                <Label htmlFor="description">{t('companyDescription')}</Label>
                 <Textarea
                   id="description"
                   {...register("description")}
                   disabled={saving}
-                  placeholder="Describe your company's mission and services..."
+                  placeholder={t('companyDescriptionPlaceholder')}
                   rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-gray-500">
-                  This description will be displayed on all employee cards
+                  {t('companyDescriptionHint')}
                 </p>
                 {errors.description && (
                   <p className="text-sm text-red-600">{errors.description.message}</p>
@@ -219,16 +231,16 @@ export default function CompanySettingsPage() {
 
               {/* Company Logo URL */}
               <div className="space-y-2">
-                <Label htmlFor="logo_url">Company Logo URL</Label>
+                <Label htmlFor="logo_url">{t('companyLogoUrl')}</Label>
                 <Input
                   id="logo_url"
                   type="url"
                   {...register("logo_url")}
                   disabled={saving}
-                  placeholder="https://example.com/logo.png"
+                  placeholder={t('companyLogoUrlPlaceholder')}
                 />
                 <p className="text-xs text-gray-500">
-                  Enter a URL to your company logo image
+                  {t('companyLogoUrlHint')}
                 </p>
                 {errors.logo_url && (
                   <p className="text-sm text-red-600">{errors.logo_url.message}</p>
@@ -237,15 +249,15 @@ export default function CompanySettingsPage() {
 
               {/* Footer Text */}
               <div className="space-y-2">
-                <Label htmlFor="footer_text">Footer Text</Label>
+                <Label htmlFor="footer_text">{t('footerText')}</Label>
                 <Input
                   id="footer_text"
                   {...register("footer_text")}
                   disabled={saving}
-                  placeholder="e.g., Portos E Caminhos De Ferro De Moçambique, E.P."
+                  placeholder={t('footerTextPlaceholder')}
                 />
                 <p className="text-xs text-gray-500">
-                  Text displayed in the header and footer of employee cards
+                  {t('footerTextHint')}
                 </p>
                 {errors.footer_text && (
                   <p className="text-sm text-red-600">{errors.footer_text.message}</p>
@@ -254,21 +266,21 @@ export default function CompanySettingsPage() {
 
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">
-                  Company Links
+                  {t('companyLinks')}
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  These links will be displayed on all employee business cards
+                  {t('companyLinksDesc')}
                 </p>
 
                 {/* Website URL */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="website_url">Company Website</Label>
+                  <Label htmlFor="website_url">{t('companyWebsite')}</Label>
                   <Input
                     id="website_url"
                     type="url"
                     {...register("website_url")}
                     disabled={saving}
-                    placeholder="https://www.company.com"
+                    placeholder={t('companyWebsitePlaceholder')}
                   />
                   {errors.website_url && (
                     <p className="text-sm text-red-600">{errors.website_url.message}</p>
@@ -277,13 +289,13 @@ export default function CompanySettingsPage() {
 
                 {/* LinkedIn URL */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="linkedin_url">LinkedIn Profile</Label>
+                  <Label htmlFor="linkedin_url">{t('linkedInProfile')}</Label>
                   <Input
                     id="linkedin_url"
                     type="url"
                     {...register("linkedin_url")}
                     disabled={saving}
-                    placeholder="https://linkedin.com/company/your-company"
+                    placeholder={t('linkedInProfilePlaceholder')}
                   />
                   {errors.linkedin_url && (
                     <p className="text-sm text-red-600">{errors.linkedin_url.message}</p>
@@ -292,13 +304,13 @@ export default function CompanySettingsPage() {
 
                 {/* Facebook URL */}
                 <div className="space-y-2 mb-4">
-                  <Label htmlFor="facebook_url">Facebook Page</Label>
+                  <Label htmlFor="facebook_url">{t('facebookPage')}</Label>
                   <Input
                     id="facebook_url"
                     type="url"
                     {...register("facebook_url")}
                     disabled={saving}
-                    placeholder="https://facebook.com/your-company"
+                    placeholder={t('facebookPagePlaceholder')}
                   />
                   {errors.facebook_url && (
                     <p className="text-sm text-red-600">{errors.facebook_url.message}</p>
@@ -307,13 +319,13 @@ export default function CompanySettingsPage() {
 
                 {/* Instagram URL */}
                 <div className="space-y-2">
-                  <Label htmlFor="instagram_url">Instagram Profile</Label>
+                  <Label htmlFor="instagram_url">{t('instagramProfile')}</Label>
                   <Input
                     id="instagram_url"
                     type="url"
                     {...register("instagram_url")}
                     disabled={saving}
-                    placeholder="https://instagram.com/your-company"
+                    placeholder={t('instagramProfilePlaceholder')}
                   />
                   {errors.instagram_url && (
                     <p className="text-sm text-red-600">{errors.instagram_url.message}</p>
@@ -325,7 +337,7 @@ export default function CompanySettingsPage() {
 
               {success && (
                 <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
-                  Company settings updated successfully!
+                  {t('companySettingsUpdatedSuccessfully')}
                 </div>
               )}
 
@@ -336,18 +348,18 @@ export default function CompanySettingsPage() {
                   onClick={() => router.push("/dashboard/company")}
                   disabled={saving}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={saving}>
                   {saving ? (
                     <>
                       <Loading size="sm" className="mr-2" />
-                      Saving...
+                      {t('saving')}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Save Changes
+                      {t('saveChanges')}
                     </>
                   )}
                 </Button>

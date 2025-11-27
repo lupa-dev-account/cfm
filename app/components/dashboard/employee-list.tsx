@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -33,6 +34,7 @@ export function EmployeeList({
   onRefresh,
   isLoading,
 }: EmployeeListProps) {
+  const t = useTranslations('common');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   const handleToggleStatus = async (employee: EmployeeWithCard) => {
@@ -41,7 +43,7 @@ export function EmployeeList({
       await toggleEmployeeStatus(employee.employee_id, !employee.is_active);
       onRefresh();
     } catch (error: any) {
-      alert(`Failed to update status: ${error.message}`);
+      alert(`${t('failedToUpdateStatus')}: ${error.message}`);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -52,11 +54,10 @@ export function EmployeeList({
   };
 
   const handleDelete = async (employee: EmployeeWithCard) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete ${employee.name || "this employee"}? This action cannot be undone.`
-      )
-    ) {
+    const confirmMessage = employee.name
+      ? t('confirmDeleteEmployee', { name: employee.name })
+      : t('confirmDeleteEmployeeDefault');
+    if (!confirm(confirmMessage)) {
       return;
     }
 
@@ -65,7 +66,7 @@ export function EmployeeList({
       await deleteEmployee(employee.employee_id);
       onRefresh();
     } catch (error: any) {
-      alert(`Failed to delete employee: ${error.message}`);
+      alert(`${t('failedToDeleteEmployee')}: ${error.message}`);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -86,7 +87,7 @@ export function EmployeeList({
   if (employees.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No employees found. Add your first employee to get started.</p>
+        <p className="text-gray-500">{t('noEmployeesFound')}</p>
       </div>
     );
   }
@@ -96,12 +97,12 @@ export function EmployeeList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[80px]">Photo</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="w-[80px]">{t('photo')}</TableHead>
+            <TableHead>{t('name')}</TableHead>
+            <TableHead>{t('title')}</TableHead>
+            <TableHead>{t('email')}</TableHead>
+            <TableHead>{t('status')}</TableHead>
+            <TableHead className="text-right">{t('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -132,7 +133,7 @@ export function EmployeeList({
                   )}
                 </TableCell>
                 <TableCell className="font-medium">
-                  {employee.name || "Unnamed Employee"}
+                  {employee.name || t('unnamedEmployee')}
                 </TableCell>
                 <TableCell>{employee.title || "-"}</TableCell>
                 <TableCell>{employee.contact_links.email}</TableCell>
@@ -150,7 +151,7 @@ export function EmployeeList({
                           : "text-gray-400"
                       }`}
                     >
-                      {employee.is_active ? "Active" : "Inactive"}
+                      {employee.is_active ? t('active') : t('inactive')}
                     </span>
                   </div>
                 </TableCell>
@@ -161,7 +162,7 @@ export function EmployeeList({
                       size="sm"
                       onClick={() => onEdit(employee)}
                       disabled={isProcessing}
-                      title="Edit"
+                      title={t('edit')}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -174,8 +175,8 @@ export function EmployeeList({
                       disabled={isProcessing || !employee.is_active}
                       title={
                         employee.is_active
-                          ? "View Card"
-                          : "Card is inactive"
+                          ? t('viewCard')
+                          : t('cardIsInactive')
                       }
                     >
                       <Eye className="h-4 w-4" />
@@ -186,7 +187,7 @@ export function EmployeeList({
                       onClick={() => handleDelete(employee)}
                       disabled={isProcessing}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete"
+                      title={t('delete')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
