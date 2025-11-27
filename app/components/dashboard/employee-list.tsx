@@ -117,6 +117,7 @@ export function EmployeeList({
                         src={employee.photo_url}
                         alt={employee.name || "Employee"}
                         fill
+                        sizes="48px"
                         className="object-cover"
                       />
                     </div>

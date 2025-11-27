@@ -29,7 +29,8 @@ export const metadata: Metadata = {
     shortcut: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg",
   },
   other: {
-    "apple-mobile-web-app-capable": "yes",
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes", // Keep for backward compatibility
     "apple-mobile-web-app-status-bar-style": "black-translucent",
   },
 };
