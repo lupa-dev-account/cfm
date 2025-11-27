@@ -18,11 +18,11 @@ export default function AdminDashboard() {
     async function checkAuth() {
       const currentUser = await getCurrentUser();
       if (!currentUser) {
-        router.push("/login");
+        router.push("/signin");
         return;
       }
       if (currentUser.role !== "super_admin") {
-        router.push("/login");
+        router.push("/signin");
         return;
       }
       setUser(currentUser);
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/signin");
   };
 
   if (loading) {

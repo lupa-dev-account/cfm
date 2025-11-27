@@ -11,7 +11,7 @@ export default function HomePage() {
     // Extract locale from pathname (e.g., "/pt" -> "pt")
     const segments = pathname.split('/').filter(Boolean);
     const locale = segments[0] || 'en'; // Default to 'en' if no locale found
-    router.replace(`/${locale}/login`);
+    router.replace(`/${locale}/signin`);
   }, [router, pathname]);
 
   return (
