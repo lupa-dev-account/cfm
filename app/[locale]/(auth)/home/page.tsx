@@ -6,6 +6,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
+// Force dynamic rendering - this page uses client-side features
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   const locale = useLocale();
   const t = useTranslations('home');
