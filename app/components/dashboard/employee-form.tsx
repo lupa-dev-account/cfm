@@ -45,17 +45,22 @@ const phoneValidation = z.string().refine(
   { message: "Invalid phone number" }
 );
 
-// Validation for text-only fields (names) - allows accented characters and international names
+// Validation for text-only fields (names)
 const textOnlyValidation = (fieldName: string) =>
-  z.string().min(1, `${fieldName} is required`).refine(
-    (value) => {
-      // Allow any Unicode letter, spaces, hyphens, apostrophes, and common accented characters
-      // This regex supports characters from Latin, Cyrillic, Greek, Arabic, Chinese, Japanese, etc.
-      const nameRegex = /^[a-zA-ZÀ-ÿĀ-žḀ-ỿ\u0370-\u03FF\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\s'-]+$/;
-      return nameRegex.test(value);
-    },
-    { message: `${fieldName} can only contain letters, spaces, hyphens, and apostrophes` }
-  );
+  z
+    .string()
+    .trim()
+    .min(1, `${fieldName} is required`)
+    .refine(
+      (value) => {
+        const normalized = value.normalize("NFC");
+        const letterCount = Array.from(normalized).filter((char) =>
+          /\p{L}/u.test(char)
+        ).length;
+        return /^[\p{L}\p{M}\s]+$/u.test(normalized) && letterCount >= 3;
+      },
+      { message: `${fieldName} must at least contain 3 letters` }
+    );
 
 const employeeSchema = z.object({
   firstName: textOnlyValidation("First name"),
@@ -65,13 +70,6 @@ const employeeSchema = z.object({
   contactLinks: z.object({
     email: cfmEmailValidation,
     phone: phoneValidation,
-    phone2: z.string().optional().or(z.literal("")).refine(
-      (phone) => {
-        if (!phone || phone === "") return true; // Optional field
-        return isValidPhoneNumber(phone);
-      },
-      { message: "Invalid phone number" }
-    ),
     whatsapp: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
@@ -171,7 +169,6 @@ export function EmployeeForm({
       contactLinks: {
         email: "",
         phone: "",
-        phone2: "",
         whatsapp: "",
       },
       isActive: true,
@@ -192,7 +189,6 @@ export function EmployeeForm({
         contactLinks: {
           email: employee.contact_links.email,
           phone: employee.contact_links.phone,
-          phone2: employee.contact_links.phone2 || "",
           whatsapp: employee.contact_links.whatsapp,
         },
         businessHours: employee.business_hours || undefined,
@@ -241,8 +237,8 @@ export function EmployeeForm({
         title: data.title,
         photoUrl: usePhotoUrl && data.photoUrl ? data.photoUrl : undefined,
         photoFile: !usePhotoUrl && photoFile ? photoFile : undefined,
-        contactLinks: data.contactLinks as any,
-        businessHours: data.businessHours as any,
+        contactLinks: data.contactLinks,
+        businessHours: data.businessHours,
         isActive: data.isActive,
       };
 
@@ -346,66 +342,46 @@ export function EmployeeForm({
           </div>
 
           {/* Name Fields */}
-          {/* Name Fields */}
-<div className="grid grid-cols-2 gap-4">
-  <div className="space-y-2">
-    <Label htmlFor="firstName">
-      First Name <span className="text-red-500">*</span>
-    </Label>
-    <Input
-      id="firstName"
-      disabled={isLoading}
-      {...register("firstName", {
-        required: "First name is required",
-        minLength: {
-          value: 1,
-          message: "First name must be at least 1 character",
-        },
-        maxLength: {
-          value: 50,
-          message: "First name must be at most 50 characters",
-        },
-        pattern: {
-          // Letters from any language + accents + spaces + . , ' -
-          value: /^[\p{L}\p{M} .,'-]+$/u,
-          message: "Please enter a valid first name",
-        },
-      })}
-    />
-    {errors.firstName && (
-      <p className="text-sm text-red-600">{errors.firstName.message}</p>
-    )}
-  </div>
-
-  <div className="space-y-2">
-    <Label htmlFor="lastName">
-      Last Name <span className="text-red-500">*</span>
-    </Label>
-    <Input
-      id="lastName"
-      disabled={isLoading}
-      {...register("lastName", {
-        required: "Last name is required",
-        minLength: {
-          value: 1,
-          message: "Last name must be at least 1 character",
-        },
-        maxLength: {
-          value: 50,
-          message: "Last name must be at most 50 characters",
-        },
-        pattern: {
-          value: /^[\p{L}\p{M} .,'-]+$/u,
-          message: "Please enter a valid last name",
-        },
-      })}
-    />
-    {errors.lastName && (
-      <p className="text-sm text-red-600">{errors.lastName.message}</p>
-    )}
-  </div>
-</div>
-
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">
+                First Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="firstName"
+                {...register("firstName")}
+                disabled={isLoading}
+                onKeyPress={(e) => {
+                  // Only allow letters and spaces
+                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-red-600">{errors.firstName.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">
+                Last Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="lastName"
+                {...register("lastName")}
+                disabled={isLoading}
+                onKeyPress={(e) => {
+                  // Only allow letters and spaces
+                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-red-600">{errors.lastName.message}</p>
+              )}
+            </div>
+          </div>
 
           {/* Title */}
           <div className="space-y-2">
@@ -478,38 +454,6 @@ export function EmployeeForm({
                 {errors.contactLinks?.phone && (
                   <p className="text-sm text-red-600">
                     {errors.contactLinks.phone.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone2">Secondary Phone (Optional)</Label>
-                <Controller
-                  name="contactLinks.phone2"
-                  control={control}
-                  render={({ field }) => (
-                    <PhoneInput
-                      international
-                      defaultCountry="MZ"
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isLoading}
-                      placeholder="Enter secondary phone number"
-                      className="phone-input-custom"
-                      numberInputProps={{
-                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
-                      }}
-                      countries={[
-                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
-                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
-                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
-                        "NG", "GH", "TZ", "UG", "RW", "AO"
-                      ]}
-                    />
-                  )}
-                />
-                {errors.contactLinks?.phone2 && (
-                  <p className="text-sm text-red-600">
-                    {errors.contactLinks.phone2.message}
                   </p>
                 )}
               </div>
@@ -597,10 +541,6 @@ export function EmployeeForm({
     </Dialog>
   );
 }
-
-
-
-
 
 
 
