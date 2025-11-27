@@ -346,46 +346,66 @@ export function EmployeeForm({
           </div>
 
           {/* Name Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">
-                First Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="firstName"
-                {...register("firstName")}
-                disabled={isLoading}
-                onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-              />
-              {errors.firstName && (
-                <p className="text-sm text-red-600">{errors.firstName.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">
-                Last Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="lastName"
-                {...register("lastName")}
-                disabled={isLoading}
-                onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
-              />
-              {errors.lastName && (
-                <p className="text-sm text-red-600">{errors.lastName.message}</p>
-              )}
-            </div>
-          </div>
+          {/* Name Fields */}
+<div className="grid grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label htmlFor="firstName">
+      First Name <span className="text-red-500">*</span>
+    </Label>
+    <Input
+      id="firstName"
+      disabled={isLoading}
+      {...register("firstName", {
+        required: "First name is required",
+        minLength: {
+          value: 1,
+          message: "First name must be at least 1 character",
+        },
+        maxLength: {
+          value: 50,
+          message: "First name must be at most 50 characters",
+        },
+        pattern: {
+          // Letters from any language + accents + spaces + . , ' -
+          value: /^[\p{L}\p{M} .,'-]+$/u,
+          message: "Please enter a valid first name",
+        },
+      })}
+    />
+    {errors.firstName && (
+      <p className="text-sm text-red-600">{errors.firstName.message}</p>
+    )}
+  </div>
+
+  <div className="space-y-2">
+    <Label htmlFor="lastName">
+      Last Name <span className="text-red-500">*</span>
+    </Label>
+    <Input
+      id="lastName"
+      disabled={isLoading}
+      {...register("lastName", {
+        required: "Last name is required",
+        minLength: {
+          value: 1,
+          message: "Last name must be at least 1 character",
+        },
+        maxLength: {
+          value: 50,
+          message: "Last name must be at most 50 characters",
+        },
+        pattern: {
+          value: /^[\p{L}\p{M} .,'-]+$/u,
+          message: "Please enter a valid last name",
+        },
+      })}
+    />
+    {errors.lastName && (
+      <p className="text-sm text-red-600">{errors.lastName.message}</p>
+    )}
+  </div>
+</div>
+
 
           {/* Title */}
           <div className="space-y-2">
@@ -577,6 +597,7 @@ export function EmployeeForm({
     </Dialog>
   );
 }
+
 
 
 
