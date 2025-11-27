@@ -70,6 +70,13 @@ const employeeSchema = z.object({
   contactLinks: z.object({
     email: cfmEmailValidation,
     phone: phoneValidation,
+    phone2: z.string().optional().or(z.literal("")).refine(
+      (phone) => {
+        if (!phone || phone === "") return true; // Optional field
+        return isValidPhoneNumber(phone);
+      },
+      { message: "Invalid phone number" }
+    ),
     whatsapp: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
@@ -169,6 +176,7 @@ export function EmployeeForm({
       contactLinks: {
         email: "",
         phone: "",
+        phone2: "",
         whatsapp: "",
       },
       isActive: true,
@@ -189,7 +197,8 @@ export function EmployeeForm({
         contactLinks: {
           email: employee.contact_links.email,
           phone: employee.contact_links.phone,
-          whatsapp: employee.contact_links.whatsapp,
+          phone2: employee.contact_links.phone2 || "",
+          whatsapp: employee.contact_links.whatsapp || "",
         },
         businessHours: employee.business_hours || undefined,
         isActive: employee.is_active,
@@ -240,8 +249,8 @@ export function EmployeeForm({
         contactLinks: {
           phone: data.contactLinks.phone!,
           email: data.contactLinks.email!,
+          phone2: data.contactLinks.phone2 || undefined,
           whatsapp: data.contactLinks.whatsapp || undefined,
-          phone2: undefined,
           website: undefined,
         },
         businessHours: data.businessHours,
@@ -358,8 +367,8 @@ export function EmployeeForm({
                 {...register("firstName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), and spaces
+                  if (!/[\p{L}\p{M}\s]/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
@@ -377,8 +386,8 @@ export function EmployeeForm({
                 {...register("lastName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), and spaces
+                  if (!/[\p{L}\p{M}\s]/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
@@ -462,6 +471,41 @@ export function EmployeeForm({
                     {errors.contactLinks.phone.message}
                   </p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone2">Secondary Phone (Optional)</Label>
+                <Controller
+                  name="contactLinks.phone2"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="Enter secondary phone number"
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
+                />
+                {errors.contactLinks?.phone2 && (
+                  <p className="text-sm text-red-600">
+                    {errors.contactLinks.phone2.message}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Secondary phone number (optional)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
