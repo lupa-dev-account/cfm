@@ -22,5 +22,16 @@
     "forgotPassword": "Passwort vergessen?",
     "dontHaveAccount": "Sie haben kein Konto?",
     "alreadyHaveAccount": "Sie haben bereits ein Konto?"
+  },
+  "home": {
+    "title": "Digitale Visitenkarten",
+    "titleHighlight": "Einfach Gemacht",
+    "description": "Verwandeln Sie Ihr Networking-Erlebnis mit NFC-fähigen digitalen Visitenkarten. Teilen Sie Ihre Kontaktinformationen sofort mit einem einfachen Antippen oder Scannen.",
+    "nfcTitle": "NFC-fähig",
+    "nfcDesc": "Tippen Sie an, um Ihre Kontaktinformationen sofort zu teilen",
+    "qrTitle": "QR-Codes",
+    "qrDesc": "Scannen und verbinden Sie sich in Sekunden",
+    "analyticsTitle": "Analysen",
+    "analyticsDesc": "Verfolgen Sie Ihre Karteninteraktionen"
   }
 }

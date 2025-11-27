@@ -22,5 +22,16 @@
     "forgotPassword": "Mot de passe oublié?",
     "dontHaveAccount": "Vous n'avez pas de compte?",
     "alreadyHaveAccount": "Vous avez déjà un compte?"
+  },
+  "home": {
+    "title": "Cartes de Visite Numériques",
+    "titleHighlight": "Simplifiées",
+    "description": "Transformez votre expérience de réseautage avec des cartes de visite numériques activées NFC. Partagez vos informations de contact instantanément avec un simple toucher ou scan.",
+    "nfcTitle": "NFC Activé",
+    "nfcDesc": "Touchez pour partager vos informations de contact instantanément",
+    "qrTitle": "Codes QR",
+    "qrDesc": "Scannez et connectez-vous en quelques secondes",
+    "analyticsTitle": "Analytique",
+    "analyticsDesc": "Suivez les interactions de votre carte"
   }
 }

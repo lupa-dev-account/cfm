@@ -22,5 +22,16 @@
     "forgotPassword": "パスワードをお忘れですか？",
     "dontHaveAccount": "アカウントをお持ちでないですか？",
     "alreadyHaveAccount": "すでにアカウントをお持ちですか？"
+  },
+  "home": {
+    "title": "デジタル名刺",
+    "titleHighlight": "シンプルに",
+    "description": "NFC対応のデジタル名刺でネットワーキング体験を変革しましょう。簡単なタップやスキャンで連絡先情報を瞬時に共有できます。",
+    "nfcTitle": "NFC対応",
+    "nfcDesc": "タップして連絡先情報を瞬時に共有",
+    "qrTitle": "QRコード",
+    "qrDesc": "数秒でスキャンして接続",
+    "analyticsTitle": "分析",
+    "analyticsDesc": "カードのインタラクションを追跡"
   }
 }

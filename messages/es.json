@@ -22,5 +22,16 @@
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "dontHaveAccount": "¿No tienes una cuenta?",
     "alreadyHaveAccount": "¿Ya tienes una cuenta?"
+  },
+  "home": {
+    "title": "Tarjetas de Presentación Digitales",
+    "titleHighlight": "Simplificadas",
+    "description": "Transforma tu experiencia de networking con tarjetas de presentación digitales habilitadas para NFC. Comparte tu información de contacto al instante con un simple toque o escaneo.",
+    "nfcTitle": "Habilitado para NFC",
+    "nfcDesc": "Toca para compartir tu información de contacto al instante",
+    "qrTitle": "Códigos QR",
+    "qrDesc": "Escanea y conecta en segundos",
+    "analyticsTitle": "Analíticas",
+    "analyticsDesc": "Rastrea las interacciones de tu tarjeta"
   }
 }

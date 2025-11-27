@@ -22,5 +22,16 @@
     "forgotPassword": "Password dimenticata?",
     "dontHaveAccount": "Non hai un account?",
     "alreadyHaveAccount": "Hai già un account?"
+  },
+  "home": {
+    "title": "Biglietti da Visita Digitali",
+    "titleHighlight": "Semplificati",
+    "description": "Trasforma la tua esperienza di networking con biglietti da visita digitali abilitati NFC. Condividi le tue informazioni di contatto istantaneamente con un semplice tocco o scansione.",
+    "nfcTitle": "NFC Abilitato",
+    "nfcDesc": "Tocca per condividere le tue informazioni di contatto istantaneamente",
+    "qrTitle": "Codici QR",
+    "qrDesc": "Scansiona e connettiti in pochi secondi",
+    "analyticsTitle": "Analisi",
+    "analyticsDesc": "Monitora le interazioni della tua carta"
   }
 }

@@ -29,5 +29,16 @@
     "forgotPassword": "Esqueceu a senha?",
     "dontHaveAccount": "Não tem uma conta?",
     "alreadyHaveAccount": "Já tem uma conta?"
+  },
+  "home": {
+    "title": "Cartões de Visita Digitais",
+    "titleHighlight": "Simplificados",
+    "description": "Transforme sua experiência de networking com cartões de visita digitais habilitados para NFC. Compartilhe suas informações de contato instantaneamente com um simples toque ou escaneamento.",
+    "nfcTitle": "Habilitado para NFC",
+    "nfcDesc": "Toque para compartilhar suas informações de contato instantaneamente",
+    "qrTitle": "Códigos QR",
+    "qrDesc": "Escaneie e conecte-se em segundos",
+    "analyticsTitle": "Análises",
+    "analyticsDesc": "Rastreie as interações do seu cartão"
   }
 }

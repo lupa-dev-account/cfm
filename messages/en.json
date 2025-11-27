@@ -29,5 +29,16 @@
     "forgotPassword": "Forgot Password?",
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?"
+  },
+  "home": {
+    "title": "Digital Business Cards",
+    "titleHighlight": "Made Simple",
+    "description": "Transform your networking experience with NFC-enabled digital business cards. Share your contact information instantly with a simple tap or scan.",
+    "nfcTitle": "NFC Enabled",
+    "nfcDesc": "Tap to share your contact information instantly",
+    "qrTitle": "QR Codes",
+    "qrDesc": "Scan and connect in seconds",
+    "analyticsTitle": "Analytics",
+    "analyticsDesc": "Track your card interactions"
   }
 }

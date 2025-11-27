@@ -22,5 +22,16 @@
     "forgotPassword": "忘记密码？",
     "dontHaveAccount": "没有账户？",
     "alreadyHaveAccount": "已有账户？"
+  },
+  "home": {
+    "title": "数字名片",
+    "titleHighlight": "简单易用",
+    "description": "借助支持NFC的数字名片，改变您的社交体验。只需轻触或扫描，即可立即分享您的联系信息。",
+    "nfcTitle": "支持NFC",
+    "nfcDesc": "轻触即可立即分享您的联系信息",
+    "qrTitle": "二维码",
+    "qrDesc": "扫描并在几秒钟内连接",
+    "analyticsTitle": "分析",
+    "analyticsDesc": "跟踪您的名片互动"
   }
 }
