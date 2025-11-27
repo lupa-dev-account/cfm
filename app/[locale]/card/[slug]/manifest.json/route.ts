@@ -16,7 +16,7 @@ export async function GET(
     .eq("is_active", true)
     .single();
 
-  const theme = (card?.theme as any) || {};
+  const theme = ((card as any)?.theme as any) || {};
   const cardOwnerName = theme?.name || "CFM Card";
 
   const manifest = {
