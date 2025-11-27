@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,23 +17,25 @@ import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Mail, Lock, User } from "lucide-react";
 
-const signUpSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type SignUpFormData = z.infer<typeof signUpSchema>;
-
 export default function SignUpPage() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('auth');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
+
+  const signUpSchema = z.object({
+    fullName: z.string().min(2, t('fullNameMinLength')),
+    email: z.string().email(t('invalidEmail')),
+    password: z.string().min(6, t('passwordMinLength')),
+    confirmPassword: z.string().min(6, t('confirmPasswordRequired')),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('passwordsDoNotMatch'),
+    path: ["confirmPassword"],
+  });
+
+  type SignUpFormData = z.infer<typeof signUpSchema>;
 
   const {
     register,
@@ -88,7 +91,7 @@ export default function SignUpPage() {
       }
 
       // Redirect to sign in page or dashboard
-      router.push("/signin?registered=true");
+      router.push(`/${locale}/signin?registered=true`);
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
@@ -97,7 +100,9 @@ export default function SignUpPage() {
 
   const handleSocialLogin = (provider: string) => {
     // Placeholder for social login
-    console.log(`Sign up with ${provider}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Sign up with ${provider}`);
+    }
   };
 
   return (
@@ -105,7 +110,7 @@ export default function SignUpPage() {
       <div className="w-full max-w-md">
         {/* Logo - Mobile only */}
         <div className="flex justify-center mb-8 md:hidden">
-          <Link href="/login">
+          <Link href={`/${locale}/home`}>
             <Image
               src="/assets/cfm_logo_light.webp"
               alt="CFM Logo"
@@ -119,9 +124,9 @@ export default function SignUpPage() {
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">Create your account</CardTitle>
+            <CardTitle className="text-2xl">{t('createAccount')}</CardTitle>
             <CardDescription>
-              Sign up to get started with digital business cards
+              {t('signUpDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -170,19 +175,19 @@ export default function SignUpPage() {
                 <span className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                <span className="bg-white px-2 text-gray-500">{t('orContinueWith')}</span>
               </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                  Full Name
+                  {t('fullName')}
                 </label>
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder={t('fullNamePlaceholder')}
                   {...register("fullName")}
                   disabled={isLoading}
                 />
@@ -193,12 +198,12 @@ export default function SignUpPage() {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
+                  {t('email')}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@company.com"
+                  placeholder={t('emailPlaceholder')}
                   {...register("email")}
                   disabled={isLoading}
                 />
@@ -209,11 +214,11 @@ export default function SignUpPage() {
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
+                  {t('password')}
                 </label>
                 <PasswordInput
                   id="password"
-                  placeholder="Create a password"
+                  placeholder={t('createPasswordPlaceholder')}
                   {...register("password")}
                   disabled={isLoading}
                 />
@@ -224,11 +229,11 @@ export default function SignUpPage() {
 
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  Confirm Password
+                  {t('confirmPassword')}
                 </label>
                 <PasswordInput
                   id="confirmPassword"
-                  placeholder="Confirm your password"
+                  placeholder={t('confirmPasswordPlaceholder')}
                   {...register("confirmPassword")}
                   disabled={isLoading}
                 />
@@ -248,18 +253,18 @@ export default function SignUpPage() {
                 {isLoading ? (
                   <>
                     <Loading size="sm" className="mr-2" />
-                    Creating account...
+                    {t('creatingAccount')}
                   </>
                 ) : (
-                  "Sign Up"
+                  t('signUp')
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600">Already have an account? </span>
-              <Link href="/signin" className="text-green-600 hover:text-green-700 font-medium">
-                Sign in
+              <span className="text-gray-600">{t('alreadyHaveAccount')} </span>
+              <Link href={`/${locale}/signin`} className="text-green-600 hover:text-green-700 font-medium">
+                {t('signIn')}
               </Link>
             </div>
           </CardContent>

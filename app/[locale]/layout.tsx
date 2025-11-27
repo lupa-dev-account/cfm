@@ -3,6 +3,41 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/request';
 import '@/styles/globals.css';
+import type { Metadata, Viewport } from 'next';
+
+export const metadata: Metadata = {
+  icons: {
+    icon: [
+      {
+        url: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg",
+        sizes: "32x32",
+        type: "image/jpeg",
+      },
+      {
+        url: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg",
+        sizes: "16x16",
+        type: "image/jpeg",
+      },
+    ],
+    apple: [
+      {
+        url: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg",
+        sizes: "180x180",
+        type: "image/jpeg",
+      },
+    ],
+    shortcut: "https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes", // Keep for backward compatibility
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#16a34a", // green-600
+};
 
 export default async function LocaleLayout({
   children,
@@ -26,7 +61,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
       </body>

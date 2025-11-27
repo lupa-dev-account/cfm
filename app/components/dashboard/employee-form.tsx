@@ -25,7 +25,17 @@ import {
 import type { EmployeeCard, BusinessHours } from "@/lib/types";
 import { Upload, X } from "lucide-react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { parsePhoneNumber } from "libphonenumber-js";
 import "react-phone-number-input/style.css";
+
+// Helper function to normalize phone number to E.164 format
+// E.164 format: +[country code][number] with no spaces or formatting
+// Example: "+258 84 6017 490" -> "+258846017490"
+const normalizePhoneNumber = (phone: string | undefined | null): string | undefined => {
+  if (!phone || phone.trim() === "") return undefined;
+  // Remove all spaces and formatting characters, keep only + and digits
+  return phone.replace(/[^\d+]/g, "");
+};
 
 // Custom validation for CFM email domains
 const cfmEmailValidation = z.string().email("Invalid email address").refine(
@@ -36,16 +46,66 @@ const cfmEmailValidation = z.string().email("Invalid email address").refine(
   { message: "Email must end with @cfm.com or @cfm.co.mz" }
 );
 
-// Custom validation for phone numbers
+// Custom validation for phone numbers with country-specific length limits
 const phoneValidation = z.string().refine(
   (phone) => {
     if (!phone) return false;
-    return isValidPhoneNumber(phone);
+    
+    // First check if it's a valid phone number format
+    if (!isValidPhoneNumber(phone)) {
+      return false;
+    }
+    
+    // Parse to get country code and check length
+    try {
+      const parsed = parsePhoneNumber(phone);
+      if (!parsed || !parsed.isValid()) return false;
+      
+      // Get the national number (without country code)
+      const nationalNumber = parsed.nationalNumber;
+      const countryCode = parsed.country;
+      
+      // Country-specific maximum lengths (in digits, excluding country code)
+      // These are approximate maximums for mobile numbers in each country
+      const maxLengths: Record<string, number> = {
+        'MZ': 9,  // Mozambique: 84 601 7490 (9 digits)
+        'PT': 9,  // Portugal: 912 345 678 (9 digits)
+        'US': 10, // USA: (415) 555-2671 (10 digits)
+        'GB': 10, // UK: 20 7183 8750 (10 digits)
+        'FR': 9,  // France: 1 23 45 67 89 (9 digits)
+        'ES': 9,  // Spain: 612 345 678 (9 digits)
+        'DE': 11, // Germany: 151 2345 6789 (11 digits)
+        'IT': 10, // Italy: 312 345 6789 (10 digits)
+        'ZA': 9,  // South Africa: 82 123 4567 (9 digits)
+        'BR': 11, // Brazil: 11 91234 5678 (11 digits)
+      };
+      
+      // If country is in our list, check length
+      if (countryCode && maxLengths[countryCode]) {
+        const maxLength = maxLengths[countryCode];
+        if (nationalNumber.length > maxLength) {
+          return false;
+        }
+      }
+      
+      // General check: international phone numbers should be between 7-15 digits total
+      // (E.164 standard allows up to 15 digits including country code)
+      const totalDigits = phone.replace(/\D/g, '').length;
+      if (totalDigits < 7 || totalDigits > 15) {
+        return false;
+      }
+      
+      return true;
+    } catch {
+      // If parsing fails, fall back to basic validation
+      return isValidPhoneNumber(phone);
+    }
   },
-  { message: "Invalid phone number" }
+  { message: "Invalid phone number or exceeds maximum length for this country" }
 );
 
 // Validation for text-only fields (names)
+// Allows: letters, accents, spaces, periods, hyphens, apostrophes
 const textOnlyValidation = (fieldName: string) =>
   z
     .string()
@@ -57,7 +117,8 @@ const textOnlyValidation = (fieldName: string) =>
         const letterCount = Array.from(normalized).filter((char) =>
           /\p{L}/u.test(char)
         ).length;
-        return /^[\p{L}\p{M}\s]+$/u.test(normalized) && letterCount >= 3;
+        // Allow letters, marks (accents), spaces, periods, hyphens, apostrophes
+        return /^[\p{L}\p{M}\s.\-']+$/u.test(normalized) && letterCount >= 3;
       },
       { message: `${fieldName} must at least contain 3 letters` }
     );
@@ -70,6 +131,46 @@ const employeeSchema = z.object({
   contactLinks: z.object({
     email: cfmEmailValidation,
     phone: phoneValidation,
+    phone2: z.string().optional().or(z.literal("")).refine(
+      (phone) => {
+        if (!phone || phone === "") return true; // Optional field
+        
+        // Use the same validation as primary phone
+        if (!isValidPhoneNumber(phone)) {
+          return false;
+        }
+        
+        // Check country-specific length limits
+        try {
+          const parsed = parsePhoneNumber(phone);
+          if (!parsed || !parsed.isValid()) return false;
+          
+          const nationalNumber = parsed.nationalNumber;
+          const countryCode = parsed.country;
+          
+          const maxLengths: Record<string, number> = {
+            'MZ': 9, 'PT': 9, 'US': 10, 'GB': 10, 'FR': 9, 'ES': 9,
+            'DE': 11, 'IT': 10, 'ZA': 9, 'BR': 11,
+          };
+          
+          if (countryCode && maxLengths[countryCode]) {
+            if (nationalNumber.length > maxLengths[countryCode]) {
+              return false;
+            }
+          }
+          
+          const totalDigits = phone.replace(/\D/g, '').length;
+          if (totalDigits < 7 || totalDigits > 15) {
+            return false;
+          }
+          
+          return true;
+        } catch {
+          return isValidPhoneNumber(phone);
+        }
+      },
+      { message: "Invalid phone number or exceeds maximum length for this country" }
+    ),
     whatsapp: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
@@ -169,6 +270,7 @@ export function EmployeeForm({
       contactLinks: {
         email: "",
         phone: "",
+        phone2: "",
         whatsapp: "",
       },
       isActive: true,
@@ -188,8 +290,9 @@ export function EmployeeForm({
         photoUrl: employee.photo_url || "",
         contactLinks: {
           email: employee.contact_links.email,
-          phone: employee.contact_links.phone,
-          whatsapp: employee.contact_links.whatsapp,
+          phone: normalizePhoneNumber(employee.contact_links.phone) || "",
+          phone2: normalizePhoneNumber(employee.contact_links.phone2) || "",
+          whatsapp: normalizePhoneNumber(employee.contact_links.whatsapp) || "",
         },
         businessHours: employee.business_hours || undefined,
         isActive: employee.is_active,
@@ -237,7 +340,13 @@ export function EmployeeForm({
         title: data.title,
         photoUrl: usePhotoUrl && data.photoUrl ? data.photoUrl : undefined,
         photoFile: !usePhotoUrl && photoFile ? photoFile : undefined,
-        contactLinks: data.contactLinks,
+        contactLinks: {
+          phone: data.contactLinks.phone!,
+          email: data.contactLinks.email!,
+          phone2: data.contactLinks.phone2 || undefined,
+          whatsapp: data.contactLinks.whatsapp || undefined,
+          website: undefined,
+        },
         businessHours: data.businessHours,
         isActive: data.isActive,
       };
@@ -352,8 +461,8 @@ export function EmployeeForm({
                 {...register("firstName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), spaces, periods, hyphens, apostrophes
+                  if (!/[\p{L}\p{M}\s.\-']/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
@@ -371,8 +480,8 @@ export function EmployeeForm({
                 {...register("lastName")}
                 disabled={isLoading}
                 onKeyPress={(e) => {
-                  // Only allow letters and spaces
-                  if (!/[a-zA-Z\s]/.test(e.key)) {
+                  // Allow Unicode letters, marks (accents), spaces, periods, hyphens, apostrophes
+                  if (!/[\p{L}\p{M}\s.\-']/u.test(e.key)) {
                     e.preventDefault();
                   }
                 }}
@@ -456,6 +565,41 @@ export function EmployeeForm({
                     {errors.contactLinks.phone.message}
                   </p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone2">Secondary Phone (Optional)</Label>
+                <Controller
+                  name="contactLinks.phone2"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder="Enter secondary phone number"
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
+                />
+                {errors.contactLinks?.phone2 && (
+                  <p className="text-sm text-red-600">
+                    {errors.contactLinks.phone2.message}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Secondary phone number (optional)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>

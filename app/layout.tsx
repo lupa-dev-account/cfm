@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -12,13 +11,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body>
-        <LanguageSwitcher />
-        {children}
-      </body>
-    </html>
-  );
+  // Root layout just returns children
+  // The actual html/body wrapper is in app/[locale]/layout.tsx
+  return children;
 }
 
