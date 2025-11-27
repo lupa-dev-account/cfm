@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Loading } from "@/components/ui/loading";
@@ -70,49 +71,72 @@ type ServiceCardProps = {
   websiteUrl?: string | null;
 };
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => (
-  <div className="w-full h-full rounded-xl bg-gray-100 border border-gray-200 p-4 md:p-5 flex flex-col items-center text-center">
-    {service.icon_name && (
-      <>
-        {service.icon_name.startsWith("http") ? (
-          <div className="mb-4 flex justify-center">
-            <div className="relative w-24 h-24 md:w-28 md:h-28">
-              <Image
-                src={service.icon_name}
-                alt={service.title}
-                fill
-                className="object-contain"
-              />
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
+  const t = useTranslations('common');
+  const params = useParams();
+  // Get locale directly from URL params (route is [locale]/card/[slug])
+  const currentLocale = (params?.locale as string) || useLocale() || 'en';
+
+  // Get translated title and description
+  // Check for title_translations and description_translations first (JSONB columns)
+  const titleTranslations = (service as any).title_translations;
+  const descTranslations = (service as any).description_translations;
+
+  // Calculate translations - use currentLocale directly without useMemo to ensure reactivity
+  let title = service.title;
+  if (titleTranslations && typeof titleTranslations === 'object') {
+    title = titleTranslations[currentLocale] || titleTranslations[currentLocale.toLowerCase()] || titleTranslations['en'] || service.title;
+  }
+
+  let description = service.description;
+  if (descTranslations && typeof descTranslations === 'object') {
+    description = descTranslations[currentLocale] || descTranslations[currentLocale.toLowerCase()] || descTranslations['en'] || service.description;
+  }
+  
+  return (
+    <div className="w-full h-full rounded-xl bg-gray-100 border border-gray-200 p-4 md:p-5 flex flex-col items-center text-center">
+      {service.icon_name && (
+        <>
+          {service.icon_name.startsWith("http") ? (
+            <div className="mb-4 flex justify-center">
+              <div className="relative w-24 h-24 md:w-28 md:h-28">
+                <Image
+                  src={service.icon_name}
+                  alt={title}
+                  fill
+                  className="object-contain"
+                />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-5xl md:text-6xl mb-4">
-            {service.icon_name}
-          </div>
-        )}
-      </>
-    )}
+          ) : (
+            <div className="text-5xl md:text-6xl mb-4">
+              {service.icon_name}
+            </div>
+          )}
+        </>
+      )}
 
-    <h3 className="font-semibold text-gray-900 mb-1 text-base md:text-lg">
-      {service.title}
-    </h3>
+      <h3 className="font-semibold text-gray-900 mb-1 text-base md:text-lg" key={`title-${currentLocale}`}>
+        {title}
+      </h3>
 
-    <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-3">
-      {service.description}
-    </p>
+      <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-3" key={`desc-${currentLocale}`}>
+        {description}
+      </p>
 
-    {websiteUrl && (
-      <a
-        href={websiteUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-auto bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
-      >
-        Learn More
-      </a>
-    )}
-  </div>
-);
+      {websiteUrl && (
+        <a
+          href={websiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-auto bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
+        >
+          {t('learnMore')}
+        </a>
+      )}
+    </div>
+  );
+};
 
 
 
@@ -255,8 +279,11 @@ function generateVCard(card: EmployeeWithCard): string {
 
 
 export default function EmployeeCardPage() {
+  const t = useTranslations('common');
   const params = useParams();
   const slug = params.slug as string;
+  // Get locale from URL params (more reliable than useLocale hook)
+  const locale = (params.locale as string) || useLocale() || 'en';
   const [card, setCard] = useState<EmployeeWithCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -281,7 +308,7 @@ export default function EmployeeCardPage() {
   useEffect(() => {
     async function loadCard() {
       if (!slug) {
-        setError("Invalid card link");
+        setError(t('invalidCardLink'));
         setLoading(false);
         return;
       }
@@ -296,13 +323,13 @@ export default function EmployeeCardPage() {
           .single();
 
         if (fetchError) {
-          setError("Card not found or inactive");
+          setError(t('cardNotFoundOrInactive'));
           setLoading(false);
           return;
         }
 
         if (!data) {
-          setError("Card not found");
+          setError(t('cardNotFound'));
           setLoading(false);
           return;
         }
@@ -315,7 +342,7 @@ export default function EmployeeCardPage() {
           .from("users")
           .select("*")
           .eq("id", (data as any).employee_id)
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no user exists
 
         if (userError) {
           console.warn("Could not fetch user data (may not be linked):", userError);
@@ -332,12 +359,12 @@ export default function EmployeeCardPage() {
           const [companyResult, servicesResult] = await Promise.all([
             supabase
               .from("companies")
-              .select("*")
+              .select("id, name, slug, subscription_plan, subscription_status, description, description_translations, banner_url, logo_url, footer_text, website_url, linkedin_url, facebook_url, instagram_url, business_hours, created_at")
               .eq("id", companyId)
               .single(),
             supabase
               .from("company_services")
-              .select("*")
+              .select("id, company_id, title, description, title_translations, description_translations, icon_name, display_order, created_at")
               .eq("company_id", companyId)
               .order("display_order", { ascending: true }),
           ]);
@@ -374,7 +401,7 @@ export default function EmployeeCardPage() {
     }
 
     loadCard();
-  }, [slug, supabase]);
+  }, [slug, supabase, t, locale]); // Include locale to reload when language changes
 
   // Auto-rotate services carousel
   useEffect(() => {
@@ -429,8 +456,8 @@ export default function EmployeeCardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Card Not Found</h1>
-          <p className="text-gray-600">{error || "This card does not exist or is inactive."}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('cardNotFound')}</h1>
+          <p className="text-gray-600">{error || t('cardNotFoundDesc')}</p>
         </div>
       </div>
     );
@@ -515,31 +542,51 @@ export default function EmployeeCardPage() {
 
           {/* Name */}
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-1">
-            {card.name || "Unnamed Employee"}
+            {card.name || t('unnamedEmployee')}
           </h1>
 
           {/* Title */}
-          {card.title && (
-            <p className="text-lg text-green-600 text-center font-normal mb-2">
-              {card.title}
-            </p>
-          )}
+          {(() => {
+            // Get translated title from theme (if available)
+            const theme = card.theme as any;
+            const titleTranslations = theme?.title_translations;
+
+            let displayTitle = card.title;
+            if (titleTranslations && typeof titleTranslations === 'object') {
+              displayTitle = titleTranslations[locale] || titleTranslations[locale.toLowerCase()] || titleTranslations['en'] || card.title;
+            }
+
+            return displayTitle ? (
+              <p className="text-lg text-green-600 text-center font-normal mb-2">
+                {displayTitle}
+              </p>
+            ) : null;
+          })()}
 
           {/* Company Description */}
-          {company?.description && (
-            <div className="mb-3">
-              <p className="text-gray-700 text-sm leading-relaxed text-center opacity-80">
-                {company.description}
-              </p>
-            </div>
-          )}
+          {(() => {
+            // Get translated company description
+            const companyDescTranslations = (company as any)?.description_translations;
+
+            const companyDescription = companyDescTranslations && typeof companyDescTranslations === 'object'
+              ? (companyDescTranslations[locale] || companyDescTranslations[locale.toLowerCase()] || companyDescTranslations['en'] || company?.description)
+              : (company?.description || '');
+
+            return companyDescription ? (
+              <div className="mb-3">
+                <p className="text-gray-700 text-sm leading-relaxed text-center opacity-80">
+                  {companyDescription}
+                </p>
+              </div>
+            ) : null;
+          })()}
         </div>
 
         <main className="px-4 py-4">
 
           {/* Contact Section */}
           <section className="mb-8">
-          <SectionTitle>Contact</SectionTitle>
+          <SectionTitle>{t('contact')}</SectionTitle>
 
 
   <div className="space-y-3">
@@ -573,14 +620,14 @@ export default function EmployeeCardPage() {
           {/* Services Section with Carousel */}
           {slides.length > 0 && (
   <section className="mb-8">
-    <SectionTitle>Services</SectionTitle>
+    <SectionTitle>{t('services')}</SectionTitle>
 
     <div className="relative">
       {slides.length > 1 && (
         <button
           onClick={prevService}
           className={`${carouselButtonBase} -left-3`}
-          aria-label="Previous service"
+          aria-label={t('previousService')}
         >
           <TbChevronLeft className="h-5 w-5 text-green-600" />
         </button>
@@ -602,12 +649,11 @@ export default function EmployeeCardPage() {
               }
             >
               {slide.map((service) => (
-                <div key={service.id} className="w-full">
-                  <ServiceCard
-                    service={service}
-                    websiteUrl={company?.website_url}
-                  />
-                </div>
+                <ServiceCard
+                  key={`service-${service.id}-${locale}`}
+                  service={service}
+                  websiteUrl={company?.website_url}
+                />
               ))}
             </div>
           </div>
@@ -620,7 +666,7 @@ export default function EmployeeCardPage() {
         <button
           onClick={nextService}
           className={`${carouselButtonBase} -right-3`}
-          aria-label="Next service"
+          aria-label={t('nextService')}
         >
           <TbChevronRight className="h-5 w-5 text-green-600" />
         </button>
@@ -635,22 +681,22 @@ export default function EmployeeCardPage() {
           {/* Business Hours - Always Show */}
   <section className="mb-6">
     <div className="bg-gray-100 rounded-xl px-4 py-6">
-      <SectionTitle>Business Hours</SectionTitle>
+      <SectionTitle>{t('businessHours')}</SectionTitle>
 
       <div className="mt-4 mx-auto w-[260px] md:w-[280px] divide-y divide-gray-500">
 
   {[
-    { day: "Monday", key: "monday" },
-    { day: "Tuesday", key: "tuesday" },
-    { day: "Wednesday", key: "wednesday" },
-    { day: "Thursday", key: "thursday" },
-    { day: "Friday", key: "friday" },
-    { day: "Saturday", key: "saturday" },
-    { day: "Sunday", key: "sunday" },
+    { day: t('monday'), key: "monday" },
+    { day: t('tuesday'), key: "tuesday" },
+    { day: t('wednesday'), key: "wednesday" },
+    { day: t('thursday'), key: "thursday" },
+    { day: t('friday'), key: "friday" },
+    { day: t('saturday'), key: "saturday" },
+    { day: t('sunday'), key: "sunday" },
   ].map(({ day, key }) => {
     const hours = businessHours?.[key as keyof typeof businessHours];
     const isClosed = !businessHours || hours?.closed || !hours?.open || !hours?.close;
-    const label = isClosed ? "Closed" : `${hours.open} - ${hours.close}`;
+    const label = isClosed ? t('closed') : `${hours.open} - ${hours.close}`;
 
     return (
       <div
@@ -698,12 +744,12 @@ export default function EmployeeCardPage() {
 
           {/* More Section */}
 <section className="mb-4">
-  <SectionTitle>More</SectionTitle>
+  <SectionTitle>{t('more')}</SectionTitle>
 
   <div className="grid grid-cols-3 gap-2">
     <button onClick={handleDownloadVCard} className={moreTileClass}>
       <MdSave className={moreIconClass} />
-      <span className={moreLabelClass}>Save</span>
+      <span className={moreLabelClass}>{t('save')}</span>
     </button>
 
     <button
@@ -711,7 +757,7 @@ export default function EmployeeCardPage() {
       className={moreTileClass}
     >
       <MdShare className={moreIconClass} />
-      <span className={moreLabelClass}>Share</span>
+      <span className={moreLabelClass}>{t('share')}</span>
     </button>
 
     <a
@@ -719,7 +765,7 @@ export default function EmployeeCardPage() {
       className={moreTileClass}
     >
       <MdPhone className={moreIconClass} />
-      <span className={moreLabelClass}>Contact</span>
+      <span className={moreLabelClass}>{t('contact')}</span>
     </a>
   </div>
 </section>
@@ -730,7 +776,7 @@ export default function EmployeeCardPage() {
         <footer className="bg-green-800 text-white py-4 rounded-t-lg">
           <div className="px-4 text-center text-xs">
             © {new Date().getFullYear()} {company?.name || "Company"}
-            {company?.footer_text && ` - ${company.footer_text}`}. All Rights Reserved.
+            {company?.footer_text && ` - ${company.footer_text}`}. {t('allRightsReserved')}.
           </div>
         </footer>
       </div>
