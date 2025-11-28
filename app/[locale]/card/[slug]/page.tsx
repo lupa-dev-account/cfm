@@ -214,7 +214,7 @@ function escapeVCardValue(value: string): string {
 /**
  * Generate vCard format for phonebook integration
  */
-function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string, locale?: string): string {
+function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string, locale?: string, t?: (key: string) => string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -235,7 +235,7 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
   const theme = card.theme as any;
   const titleTranslations = theme?.title_translations;
   // Use translated title for current locale, fallback to original
-  const vCardTitle = translateTitle(card.title, titleTranslations, locale);
+  const vCardTitle = translateTitle(card.title, titleTranslations, locale, t);
   if (vCardTitle) {
     vcard += `TITLE:${escapeVCardValue(vCardTitle)}\r\n`;
   }
@@ -296,7 +296,7 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
     notes.push(company.description);
   }
   // Use translated title for notes if available
-  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale);
+  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale, t);
   if (displayTitleForVCard && company?.name) {
     notes.push(`${displayTitleForVCard} at ${company.name}`);
   }
@@ -544,7 +544,7 @@ export default function EmployeeCardPage() {
       }
     }
 
-    const vCardData = generateVCard(card, photoBase64, photoType, locale);
+    const vCardData = generateVCard(card, photoBase64, photoType, locale, t);
     const blob = new Blob([vCardData], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -568,7 +568,7 @@ export default function EmployeeCardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('cardNotFound')}</h1>
+          <h1 className="text-2xl font-bold text-black mb-2">{t('cardNotFound')}</h1>
           <p className="text-gray-600">{error || t('cardNotFoundDesc')}</p>
         </div>
       </div>
@@ -657,7 +657,7 @@ export default function EmployeeCardPage() {
         <div className="bg-white px-4 pb-3">
 
           {/* Name */}
-          <h1 className="text-3xl font-bold text-gray-900 text-center mb-1">
+          <h1 className="text-3xl font-bold text-black text-center mb-1">
             {card.name || t('unnamedEmployee')}
           </h1>
 
@@ -666,7 +666,7 @@ export default function EmployeeCardPage() {
             // Get translated title from theme (if available)
             const theme = card.theme as any;
             const titleTranslations = theme?.title_translations;
-            const displayTitle = translateTitle(card.title, titleTranslations, locale);
+            const displayTitle = translateTitle(card.title, titleTranslations, locale, t);
 
             return displayTitle ? (
               <p className="text-lg text-green-600 text-center font-normal mb-2">

@@ -91,10 +91,10 @@ const DialogContent = React.forwardRef<
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4"
+            className="absolute top-4 right-4 hover:bg-black rounded-full"
             onClick={() => context.onOpenChange(false)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 text-gray-700 hover:text-white" />
           </Button>
         </div>
       </div>
@@ -120,7 +120,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-lg font-semibold leading-none tracking-tight text-black", className)}
     {...props}
   />
 ));

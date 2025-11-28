@@ -34,7 +34,7 @@ function escapeVCardValue(value: string): string {
  * Generate vCard format for phonebook integration
  * This format ensures phones automatically prompt to save contact when QR is scanned
  */
-function generateVCard(card: EmployeeWithCard, locale?: string): string {
+function generateVCard(card: EmployeeWithCard, locale?: string, t?: (key: string) => string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -55,7 +55,7 @@ function generateVCard(card: EmployeeWithCard, locale?: string): string {
   const theme = card.theme as any;
   const titleTranslations = theme?.title_translations;
   // Use translated title for current locale, fallback to original
-  const vCardTitle = translateTitle(card.title, titleTranslations, locale);
+  const vCardTitle = translateTitle(card.title, titleTranslations, locale, t);
   if (vCardTitle) {
     vcard += `TITLE:${escapeVCardValue(vCardTitle)}\r\n`;
   }
@@ -103,7 +103,7 @@ function generateVCard(card: EmployeeWithCard, locale?: string): string {
     notes.push(company.description);
   }
   // Use translated title for notes if available
-  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale);
+  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale, t);
   if (displayTitleForVCard && company?.name) {
     notes.push(`${displayTitleForVCard} at ${company.name}`);
   }
@@ -133,9 +133,10 @@ function generateVCard(card: EmployeeWithCard, locale?: string): string {
 
 export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
   const t = useTranslations("common");
+  const locale = useLocale();
   const cardUrl = typeof window !== "undefined" ? window.location.href : "";
   // Always generate unique vCard data for this specific card
-  const vCardData = generateVCard(card);
+  const vCardData = generateVCard(card, locale, t);
   const company = card.company;
   const contactLinks = card.contact_links;
 
@@ -197,14 +198,14 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-semibold text-gray-900">{t("shareThisCard")}</h2>
+            <h2 className="text-lg font-semibold text-black">{t("shareThisCard")}</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8 p-0 hover:bg-gray-900 rounded-full"
+              className="h-8 w-8 p-0 hover:bg-black rounded-full"
             >
-              <X className="h-4 w-4 text-black hover:text-white" />
+              <X className="h-4 w-4 text-gray-700 hover:text-white" />
             </Button>
           </div>
         </div>
@@ -266,7 +267,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 type="text"
                 value={cardUrl}
                 readOnly
-                className="flex-1 text-sm text-gray-700 bg-transparent border-none outline-none text-center"
+                className="flex-1 text-sm text-black bg-transparent border-none outline-none text-center"
               />
               <button
                 onClick={handleCopyLink}

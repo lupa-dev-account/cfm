@@ -81,7 +81,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-4">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">
+              <h1 className="text-4xl lg:text-5xl font-bold text-black">
                 {t('title')}
                 <br />
                 <span className="text-green-600">{t('titleHighlight')}</span>

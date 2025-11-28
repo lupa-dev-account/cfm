@@ -166,7 +166,7 @@ export default function SignInPage() {
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-2xl text-black">
               {isReturningUser ? t('welcomeBack') : t('signIn')}
             </CardTitle>
             <CardDescription>

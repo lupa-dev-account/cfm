@@ -126,7 +126,7 @@ export default function SignUpPage() {
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">{t('createAccount')}</CardTitle>
+            <CardTitle className="text-2xl text-black">{t('createAccount')}</CardTitle>
             <CardDescription>
               {t('signUpDescription')}
             </CardDescription>

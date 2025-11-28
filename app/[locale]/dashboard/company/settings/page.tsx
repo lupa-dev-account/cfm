@@ -171,7 +171,7 @@ export default function CompanySettingsPage() {
               <span className="hidden sm:inline">{t('backToDashboard')}</span>
               <span className="sm:hidden">{t('backToDashboard').split(' ')[0]}</span>
             </Button>
-            <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">{t('companySettings')}</h1>
+            <h1 className="text-lg md:text-2xl font-bold text-black truncate">{t('companySettings')}</h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-[10px] md:text-sm text-gray-600 hidden sm:inline truncate max-w-[100px] md:max-w-none">{user?.email}</span>

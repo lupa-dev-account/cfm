@@ -99,7 +99,7 @@ export default function CompanyDashboard() {
       <div className="min-h-screen bg-gray-50 overflow-x-hidden">
         <nav className="bg-white shadow-sm border-b overflow-x-hidden">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center overflow-x-hidden">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">{t('companyDashboard')}</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-black truncate">{t('companyDashboard')}</h1>
             <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               <span className="text-xs md:text-sm text-gray-600 hidden sm:inline truncate max-w-[120px]">{user?.email}</span>
               <Button onClick={handleLogout} variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 text-white border-green-600 text-xs md:text-sm whitespace-nowrap">
@@ -127,7 +127,7 @@ export default function CompanyDashboard() {
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <nav className="bg-white shadow-sm border-b overflow-x-hidden">
         <div className="container mx-auto px-3 md:px-4 py-2 md:py-4 flex justify-between items-center overflow-x-hidden">
-          <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">{t('companyDashboard')}</h1>
+          <h1 className="text-lg md:text-2xl font-bold text-black truncate">{t('companyDashboard')}</h1>
           <div className="flex items-center gap-1.5 md:gap-3 flex-shrink-0">
             <Button
               onClick={() => router.push("/dashboard/company/settings")}

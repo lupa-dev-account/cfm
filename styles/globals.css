@@ -39,6 +39,7 @@ body {
 
 .phone-input-custom .PhoneInputInput {
   font-family: 'Montserrat', sans-serif;
+  color: #000000 !important; /* Ensure black text */
 }
 
 /* Phone Input Country Selector Dropdown */

@@ -463,7 +463,7 @@ export function EmployeeForm({
                       setPhotoFile(null);
                       setValue("photoUrl", "");
                     }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    className="absolute -top-2 -right-2 bg-white border border-gray-300 text-gray-700 hover:bg-black hover:text-white rounded-full p-1 transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -617,7 +617,7 @@ export function EmployeeForm({
                       placeholder={t("enterPhoneNumber")}
                       className="phone-input-custom"
                       numberInputProps={{
-                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-600",
                       }}
                       countries={[
                         "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
@@ -649,7 +649,7 @@ export function EmployeeForm({
                       placeholder={t("enterSecondaryPhone")}
                       className="phone-input-custom"
                       numberInputProps={{
-                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-600",
                       }}
                       countries={[
                         "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
@@ -684,7 +684,7 @@ export function EmployeeForm({
                       placeholder={t("whatsappPlaceholder")}
                       className="phone-input-custom"
                       numberInputProps={{
-                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-600",
                       }}
                       countries={[
                         "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
@@ -714,7 +714,7 @@ export function EmployeeForm({
                       placeholder={t("whatsapp2Placeholder")}
                       className="phone-input-custom"
                       numberInputProps={{
-                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-600",
                       }}
                       countries={[
                         "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
