@@ -165,7 +165,7 @@ export default function CompanySettingsPage() {
               variant="ghost"
               size="sm"
               onClick={() => router.push("/dashboard/company")}
-              className="text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9"
+              className="bg-green-600 hover:bg-green-700 text-white text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9"
             >
               <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">{t('backToDashboard')}</span>
@@ -175,7 +175,7 @@ export default function CompanySettingsPage() {
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-[10px] md:text-sm text-gray-600 hidden sm:inline truncate max-w-[100px] md:max-w-none">{user?.email}</span>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="text-[10px] md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9 whitespace-nowrap">
+            <Button onClick={handleLogout} variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 text-white border-green-600 text-[10px] md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9 whitespace-nowrap">
               {t('logout')}
             </Button>
           </div>
@@ -188,7 +188,7 @@ export default function CompanySettingsPage() {
             <div className="flex items-center gap-2 md:gap-3">
               <Building2 className="h-4 w-4 md:h-6 md:w-6 text-green-600 flex-shrink-0" />
               <div>
-                <CardTitle className="text-base md:text-xl">{t('companyInformation')}</CardTitle>
+                <CardTitle className="text-base md:text-xl text-black">{t('companyInformation')}</CardTitle>
                 <CardDescription className="text-xs md:text-sm mt-0.5 md:mt-1">
                   {t('companyInformationDesc')}
                 </CardDescription>
@@ -268,7 +268,7 @@ export default function CompanySettingsPage() {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">
+                <h3 className="text-lg font-semibold mb-4 text-black">
                   {t('companyLinks')}
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
@@ -350,10 +350,11 @@ export default function CompanySettingsPage() {
                   variant="outline"
                   onClick={() => router.push("/dashboard/company")}
                   disabled={saving}
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600"
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={saving}>
+                <Button type="submit" disabled={saving} className="bg-green-600 hover:bg-green-700 text-white">
                   {saving ? (
                     <>
                       <Loading size="sm" className="mr-2" />

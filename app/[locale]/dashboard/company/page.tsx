@@ -102,7 +102,7 @@ export default function CompanyDashboard() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">{t('companyDashboard')}</h1>
             <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
               <span className="text-xs md:text-sm text-gray-600 hidden sm:inline truncate max-w-[120px]">{user?.email}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm" className="text-xs md:text-sm whitespace-nowrap">
+              <Button onClick={handleLogout} variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 text-white border-green-600 text-xs md:text-sm whitespace-nowrap">
                 {t('logout')}
               </Button>
               <LanguageSwitcher variant="inline" className="" />
@@ -140,7 +140,7 @@ export default function CompanyDashboard() {
               <span className="sm:hidden">{t('settings')}</span>
             </Button>
             <span className="text-[10px] md:text-sm text-gray-600 hidden lg:inline truncate max-w-[120px]">{user?.email}</span>
-            <Button onClick={handleLogout} variant="outline" size="sm" className="text-[10px] md:text-sm whitespace-nowrap px-2 md:px-3 py-1 md:py-2 h-7 md:h-9">
+            <Button onClick={handleLogout} variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 text-white border-green-600 text-[10px] md:text-sm whitespace-nowrap px-2 md:px-3 py-1 md:py-2 h-7 md:h-9">
               {t('logout')}
             </Button>
             <LanguageSwitcher variant="inline" className="" />
@@ -153,11 +153,11 @@ export default function CompanyDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-8">
           <Card className="p-3 md:p-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 px-0 pt-0">
-              <CardTitle className="text-xs md:text-sm font-medium">{t('totalEmployees')}</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-black">{t('totalEmployees')}</CardTitle>
               <Users className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
             </CardHeader>
             <CardContent className="px-0 pt-2 md:pt-4">
-              <div className="text-xl md:text-2xl font-bold">{employees.length}</div>
+              <div className="text-xl md:text-2xl font-bold text-green-600">{employees.length}</div>
               <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
                 {employees.filter((e) => e.is_active).length} {t('active')}
               </p>
@@ -166,10 +166,10 @@ export default function CompanyDashboard() {
 
           <Card className="p-3 md:p-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 px-0 pt-0">
-              <CardTitle className="text-xs md:text-sm font-medium">{t('activeCards')}</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-black">{t('activeCards')}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 pt-2 md:pt-4">
-              <div className="text-xl md:text-2xl font-bold">
+              <div className="text-xl md:text-2xl font-bold text-green-600">
                 {employees.filter((e) => e.is_active).length}
               </div>
               <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">{t('currentlyActive')}</p>
@@ -178,10 +178,10 @@ export default function CompanyDashboard() {
 
           <Card className="p-3 md:p-6">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 px-0 pt-0">
-              <CardTitle className="text-xs md:text-sm font-medium">{t('inactiveCards')}</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-black">{t('inactiveCards')}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 pt-2 md:pt-4">
-              <div className="text-xl md:text-2xl font-bold">
+              <div className="text-xl md:text-2xl font-bold text-green-600">
                 {employees.filter((e) => !e.is_active).length}
               </div>
               <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">{t('currentlyDisabled')}</p>
@@ -194,7 +194,7 @@ export default function CompanyDashboard() {
           <CardHeader className="px-0 pt-0 pb-3 md:pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <CardTitle className="text-base md:text-xl">{t('employeeManagement')}</CardTitle>
+                <CardTitle className="text-base md:text-xl text-black">{t('employeeManagement')}</CardTitle>
                 <CardDescription className="text-xs md:text-sm mt-1">
                   {t('employeeManagementDesc')}
                 </CardDescription>

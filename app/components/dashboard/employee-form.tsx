@@ -175,6 +175,7 @@ const createEmployeeSchema = (t: (key: string) => string) => {
       { message: t("invalidPhoneNumberOrExceeds") }
     ),
     whatsapp: z.string().optional().or(z.literal("")),
+    whatsapp2: z.string().optional().or(z.literal("")),
   }),
   businessHours: z
     .object({
@@ -256,6 +257,8 @@ export function EmployeeForm({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [usePhotoUrl, setUsePhotoUrl] = useState(false);
+  const [showTitleTranslations, setShowTitleTranslations] = useState(false);
+  const [titleTranslations, setTitleTranslations] = useState<Record<string, string>>({});
 
   const employeeSchema = createEmployeeSchema(t);
 
@@ -279,6 +282,7 @@ export function EmployeeForm({
         phone: "",
         phone2: "",
         whatsapp: "",
+        whatsapp2: "",
       },
       isActive: true,
     },
@@ -300,13 +304,22 @@ export function EmployeeForm({
           phone: normalizePhoneNumber(employee.contact_links.phone) || "",
           phone2: normalizePhoneNumber(employee.contact_links.phone2) || "",
           whatsapp: normalizePhoneNumber(employee.contact_links.whatsapp) || "",
+          whatsapp2: normalizePhoneNumber((employee.contact_links as any).whatsapp2) || "",
         },
         businessHours: employee.business_hours || undefined,
         isActive: employee.is_active,
       });
+      // Load title translations if they exist
+      if (theme?.title_translations && typeof theme.title_translations === 'object') {
+        setTitleTranslations(theme.title_translations);
+        setShowTitleTranslations(Object.keys(theme.title_translations).length > 0);
+      }
       setPhotoPreview(employee.photo_url);
       setUsePhotoUrl(!!employee.photo_url);
     } else {
+      // Reset title translations when creating new employee
+      setTitleTranslations({});
+      setShowTitleTranslations(false);
       reset();
       setPhotoFile(null);
       setPhotoPreview(null);
@@ -352,11 +365,13 @@ export function EmployeeForm({
           email: data.contactLinks.email!,
           phone2: data.contactLinks.phone2 || undefined,
           whatsapp: data.contactLinks.whatsapp || undefined,
+          whatsapp2: data.contactLinks.whatsapp2 || undefined,
           website: undefined,
         },
         businessHours: data.businessHours,
         isActive: data.isActive,
-      };
+        titleTranslations: Object.keys(titleTranslations).length > 0 ? titleTranslations : undefined,
+      } as ServiceEmployeeFormData & { titleTranslations?: Record<string, string> };
 
       if (employee) {
         await updateEmployee(employee.employee_id, formData);
@@ -513,7 +528,53 @@ export function EmployeeForm({
             {errors.title && (
               <p className="text-sm text-red-600">{errors.title.message}</p>
             )}
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setShowTitleTranslations(!showTitleTranslations)}
+                className="text-sm text-green-600 hover:text-green-700 underline"
+              >
+                {showTitleTranslations ? t("hideTitleTranslations") : t("addTitleTranslations")}
+              </button>
+            </div>
           </div>
+
+          {/* Title Translations */}
+          {showTitleTranslations && (
+            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                {t("titleTranslations")}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {['en', 'pt', 'es', 'fr', 'de', 'it', 'zh', 'ja', 'ar', 'ru'].map((locale) => (
+                  <div key={locale} className="space-y-1">
+                    <Label htmlFor={`title-${locale}`} className="text-xs text-gray-600">
+                      {locale.toUpperCase()}
+                    </Label>
+                    <Input
+                      id={`title-${locale}`}
+                      value={titleTranslations[locale] || ''}
+                      onChange={(e) => {
+                        const newTranslations = { ...titleTranslations };
+                        if (e.target.value.trim()) {
+                          newTranslations[locale] = e.target.value;
+                        } else {
+                          delete newTranslations[locale];
+                        }
+                        setTitleTranslations(newTranslations);
+                      }}
+                      placeholder={locale === 'en' ? t("titlePlaceholder") : t("enterTranslation")}
+                      disabled={isLoading}
+                      className="text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {t("titleTranslationsDesc")}
+              </p>
+            </div>
+          )}
 
           {/* Contact Links */}
           <div className="space-y-4">
@@ -636,6 +697,36 @@ export function EmployeeForm({
                 />
                 <p className="text-xs text-gray-500">
                   {t("whatsappDesc")}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp2">{t("whatsapp2Optional")}</Label>
+                <Controller
+                  name="contactLinks.whatsapp2"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      international
+                      defaultCountry="MZ"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      placeholder={t("whatsapp2Placeholder")}
+                      className="phone-input-custom"
+                      numberInputProps={{
+                        className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
+                      }}
+                      countries={[
+                        "MZ", "PT", "US", "ZA", "BR", "GB", "FR", "ES",
+                        "DE", "IT", "CN", "IN", "JP", "AU", "CA", "MX",
+                        "AR", "CL", "CO", "PE", "AE", "SA", "EG", "KE",
+                        "NG", "GH", "TZ", "UG", "RW", "AO"
+                      ]}
+                    />
+                  )}
+                />
+                <p className="text-xs text-gray-500">
+                  {t("whatsapp2Desc")}
                 </p>
               </div>
             </div>

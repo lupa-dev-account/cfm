@@ -43,6 +43,7 @@ export interface ContactLinks {
   phone: string; // REQUIRED
   phone2?: string; // OPTIONAL secondary phone
   whatsapp?: string; // OPTIONAL
+  whatsapp2?: string; // OPTIONAL second WhatsApp number
   email: string; // REQUIRED
   website?: string; // OPTIONAL (company website)
 }

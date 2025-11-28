@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { translateTitle } from "@/lib/utils/title-translator";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -36,6 +38,7 @@ export function EmployeeList({
   isLoading,
 }: EmployeeListProps) {
   const t = useTranslations('common');
+  const locale = useLocale();
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeWithCard | null>(null);
@@ -91,7 +94,7 @@ export function EmployeeList({
   if (employees.length === 0) {
     return (
       <div className="text-center py-6 md:py-12">
-        <p className="text-xs md:text-sm text-gray-500">{t('noEmployeesFound')}</p>
+        <p className="text-xs md:text-sm text-black">{t('noEmployeesFound')}</p>
       </div>
     );
   }
@@ -101,12 +104,12 @@ export function EmployeeList({
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead className="w-[50px] md:w-[80px] text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('photo')}</TableHead>
-            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('name')}</TableHead>
-            <TableHead className="hidden sm:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('title')}</TableHead>
-            <TableHead className="hidden md:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('email')}</TableHead>
-            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('status')}</TableHead>
-            <TableHead className="text-right text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('actions')}</TableHead>
+            <TableHead className="w-[50px] md:w-[80px] text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('photo')}</TableHead>
+            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('name')}</TableHead>
+            <TableHead className="hidden sm:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('title')}</TableHead>
+            <TableHead className="hidden md:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('email')}</TableHead>
+            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('status')}</TableHead>
+            <TableHead className="text-right text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -137,15 +140,15 @@ export function EmployeeList({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-xs md:text-sm py-2 md:py-3 px-2 md:px-4">
+                <TableCell className="font-medium text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">
                   <div className="flex flex-col">
-                    <span>{employee.name || t('unnamedEmployee')}</span>
-                    <span className="text-[10px] text-gray-500 sm:hidden">{employee.title || "-"}</span>
-                    <span className="text-[10px] text-gray-500 md:hidden truncate max-w-[150px]">{employee.contact_links.email}</span>
+                    <span className="text-black">{employee.name || t('unnamedEmployee')}</span>
+                    <span className="text-[10px] text-black sm:hidden">{translateTitle(employee.title, employee.title_translations, locale) || "-"}</span>
+                    <span className="text-[10px] text-black md:hidden truncate max-w-[150px]">{employee.contact_links.email}</span>
                   </div>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4">{employee.title || "-"}</TableCell>
-                <TableCell className="hidden md:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 truncate max-w-[200px]">{employee.contact_links.email}</TableCell>
+                <TableCell className="hidden sm:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{translateTitle(employee.title, employee.title_translations, locale) || "-"}</TableCell>
+                <TableCell className="hidden md:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 truncate max-w-[200px] text-black">{employee.contact_links.email}</TableCell>
                 <TableCell className="py-2 md:py-3 px-2 md:px-4">
                   <div className="flex items-center gap-1 md:gap-2">
                     <Switch
@@ -173,7 +176,7 @@ export function EmployeeList({
                       onClick={() => onEdit(employee)}
                       disabled={isProcessing}
                       title={t('edit')}
-                      className="h-7 w-7 md:h-9 md:w-9 p-0"
+                      className="h-7 w-7 md:h-9 md:w-9 p-0 text-black hover:text-black"
                     >
                       <Edit className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
@@ -189,7 +192,7 @@ export function EmployeeList({
                           ? t('viewCard')
                           : t('cardIsInactive')
                       }
-                      className="h-7 w-7 md:h-9 md:w-9 p-0"
+                      className="h-7 w-7 md:h-9 md:w-9 p-0 text-black hover:text-black"
                     >
                       <Eye className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>

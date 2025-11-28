@@ -11,6 +11,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { EmployeeWithCard } from "@/lib/types";
 import type { Database } from "@/lib/types/database";
 import { parsePhoneNumber, formatNumber } from "libphonenumber-js";
+import { translateTitle } from "@/lib/utils/title-translator";
 
 import {
   FaMeta,
@@ -213,7 +214,7 @@ function escapeVCardValue(value: string): string {
 /**
  * Generate vCard format for phonebook integration
  */
-function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string): string {
+function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string, locale?: string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -230,9 +231,13 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
     vcard += `N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};;;\r\n`;
   }
 
-  // Title and Organization
-  if (card.title) {
-    vcard += `TITLE:${escapeVCardValue(card.title)}\r\n`;
+  // Title and Organization - use translated title if available
+  const theme = card.theme as any;
+  const titleTranslations = theme?.title_translations;
+  // Use translated title for current locale, fallback to original
+  const vCardTitle = translateTitle(card.title, titleTranslations, locale);
+  if (vCardTitle) {
+    vcard += `TITLE:${escapeVCardValue(vCardTitle)}\r\n`;
   }
   if (company?.name) {
     vcard += `ORG:${escapeVCardValue(company.name)}\r\n`;
@@ -252,6 +257,12 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
   if (contactLinks.whatsapp) {
     const cleanWhatsApp = contactLinks.whatsapp.replace(/[^\d+]/g, "");
     vcard += `TEL;TYPE=CELL,WA:${cleanWhatsApp}\r\n`;
+  }
+
+  // WhatsApp2 - always include if provided
+  if (contactLinks.whatsapp2) {
+    const cleanWhatsApp2 = contactLinks.whatsapp2.replace(/[^\d+]/g, "");
+    vcard += `TEL;TYPE=CELL,WA:${cleanWhatsApp2}\r\n`;
   }
 
   // Email
@@ -284,8 +295,10 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
   if (company?.description) {
     notes.push(company.description);
   }
-  if (card.title && company?.name) {
-    notes.push(`${card.title} at ${company.name}`);
+  // Use translated title for notes if available
+  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale);
+  if (displayTitleForVCard && company?.name) {
+    notes.push(`${displayTitleForVCard} at ${company.name}`);
   }
   if (notes.length > 0) {
     vcard += `NOTE:${escapeVCardValue(notes.join("\\n"))}\r\n`;
@@ -431,6 +444,7 @@ export default function EmployeeCardPage() {
           ...(data as any),
           name: theme?.name || (userData ? `${(userData as any).first_name || ''} ${(userData as any).last_name || ''}`.trim() : null) || t('employee'),
           title: theme?.title || (userData as any)?.title || "",
+          title_translations: theme?.title_translations || undefined,
           company: companyData,
           services: servicesData,
         };
@@ -530,7 +544,7 @@ export default function EmployeeCardPage() {
       }
     }
 
-    const vCardData = generateVCard(card, photoBase64, photoType);
+    const vCardData = generateVCard(card, photoBase64, photoType, locale);
     const blob = new Blob([vCardData], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -652,11 +666,7 @@ export default function EmployeeCardPage() {
             // Get translated title from theme (if available)
             const theme = card.theme as any;
             const titleTranslations = theme?.title_translations;
-
-            let displayTitle = card.title;
-            if (titleTranslations && typeof titleTranslations === 'object') {
-              displayTitle = titleTranslations[locale] || titleTranslations[locale.toLowerCase()] || titleTranslations['en'] || card.title;
-            }
+            const displayTitle = translateTitle(card.title, titleTranslations, locale);
 
             return displayTitle ? (
               <p className="text-lg text-green-600 text-center font-normal mb-2">
@@ -696,6 +706,13 @@ export default function EmployeeCardPage() {
     {contactLinks.whatsapp && (
       <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
         {formatPhoneNumber(contactLinks.whatsapp)}
+      </ContactItem>
+    )}
+
+    {/* Second WhatsApp - always show if provided */}
+    {contactLinks.whatsapp2 && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp2.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp2)}
       </ContactItem>
     )}
 

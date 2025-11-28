@@ -4,7 +4,8 @@ import { QRCodeSVG } from "qrcode.react";
 import Image from "next/image";
 import { ChevronLeft, X, ExternalLink, Twitter, Linkedin, Instagram } from "lucide-react";
 import { FaWhatsapp, FaMeta } from "react-icons/fa6";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { translateTitle } from "@/lib/utils/title-translator";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +34,7 @@ function escapeVCardValue(value: string): string {
  * Generate vCard format for phonebook integration
  * This format ensures phones automatically prompt to save contact when QR is scanned
  */
-function generateVCard(card: EmployeeWithCard): string {
+function generateVCard(card: EmployeeWithCard, locale?: string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -50,9 +51,13 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};;;\r\n`;
   }
 
-  // Title and Organization
-  if (card.title) {
-    vcard += `TITLE:${escapeVCardValue(card.title)}\r\n`;
+  // Title and Organization - use translated title if available
+  const theme = card.theme as any;
+  const titleTranslations = theme?.title_translations;
+  // Use translated title for current locale, fallback to original
+  const vCardTitle = translateTitle(card.title, titleTranslations, locale);
+  if (vCardTitle) {
+    vcard += `TITLE:${escapeVCardValue(vCardTitle)}\r\n`;
   }
   if (company?.name) {
     vcard += `ORG:${escapeVCardValue(company.name)}\r\n`;
@@ -97,8 +102,10 @@ function generateVCard(card: EmployeeWithCard): string {
   if (company?.description) {
     notes.push(company.description);
   }
-  if (card.title && company?.name) {
-    notes.push(`${card.title} at ${company.name}`);
+  // Use translated title for notes if available
+  const displayTitleForVCard = translateTitle(card.title, titleTranslations, locale);
+  if (displayTitleForVCard && company?.name) {
+    notes.push(`${displayTitleForVCard} at ${company.name}`);
   }
   if (notes.length > 0) {
     vcard += `NOTE:${escapeVCardValue(notes.join("\\n"))}\r\n`;
