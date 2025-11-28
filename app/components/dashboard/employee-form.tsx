@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,17 +38,19 @@ const normalizePhoneNumber = (phone: string | undefined | null): string | undefi
   return phone.replace(/[^\d+]/g, "");
 };
 
-// Custom validation for CFM email domains
-const cfmEmailValidation = z.string().email("Invalid email address").refine(
-  (email) => {
-    const domain = email.split("@")[1]?.toLowerCase();
-    return domain === "cfm.com" || domain === "cfm.co.mz";
-  },
-  { message: "Email must end with @cfm.com or @cfm.co.mz" }
-);
+// Function to create validation schema with translations
+const createEmployeeSchema = (t: (key: string) => string) => {
+  // Custom validation for CFM email domains
+  const cfmEmailValidation = z.string().email(t("invalidEmailAddress")).refine(
+    (email) => {
+      const domain = email.split("@")[1]?.toLowerCase();
+      return domain === "cfm.com" || domain === "cfm.co.mz";
+    },
+    { message: t("emailMustEndWith") }
+  );
 
-// Custom validation for phone numbers with country-specific length limits
-const phoneValidation = z.string().refine(
+  // Custom validation for phone numbers with country-specific length limits
+  const phoneValidation = z.string().refine(
   (phone) => {
     if (!phone) return false;
     
@@ -101,36 +104,36 @@ const phoneValidation = z.string().refine(
       return isValidPhoneNumber(phone);
     }
   },
-  { message: "Invalid phone number or exceeds maximum length for this country" }
-);
+  { message: t("invalidPhoneNumberOrExceeds") }
+  );
 
-// Validation for text-only fields (names)
-// Allows: letters, accents, spaces, periods, hyphens, apostrophes
-const textOnlyValidation = (fieldName: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, `${fieldName} is required`)
-    .refine(
-      (value) => {
-        const normalized = value.normalize("NFC");
-        const letterCount = Array.from(normalized).filter((char) =>
-          /\p{L}/u.test(char)
-        ).length;
-        // Allow letters, marks (accents), spaces, periods, hyphens, apostrophes
-        return /^[\p{L}\p{M}\s.\-']+$/u.test(normalized) && letterCount >= 3;
-      },
-      { message: `${fieldName} must at least contain 3 letters` }
-    );
+  // Validation for text-only fields (names)
+  // Allows: letters, accents, spaces, periods, hyphens, apostrophes
+  const textOnlyValidation = (fieldNameKey: string, requiredKey: string, minLettersKey: string) =>
+    z
+      .string()
+      .trim()
+      .min(1, t(requiredKey))
+      .refine(
+        (value) => {
+          const normalized = value.normalize("NFC");
+          const letterCount = Array.from(normalized).filter((char) =>
+            /\p{L}/u.test(char)
+          ).length;
+          // Allow letters, marks (accents), spaces, periods, hyphens, apostrophes
+          return /^[\p{L}\p{M}\s.\-']+$/u.test(normalized) && letterCount >= 3;
+        },
+        { message: t(minLettersKey) }
+      );
 
-const employeeSchema = z.object({
-  firstName: textOnlyValidation("First name"),
-  lastName: textOnlyValidation("Last name"),
-  title: z.string().min(1, "Title is required"),
-  photoUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
-  contactLinks: z.object({
-    email: cfmEmailValidation,
-    phone: phoneValidation,
+  return z.object({
+    firstName: textOnlyValidation("firstName", "firstNameRequired", "firstNameMinLetters"),
+    lastName: textOnlyValidation("lastName", "lastNameRequired", "lastNameMinLetters"),
+    title: z.string().min(1, t("titleRequired")),
+    photoUrl: z.string().url(t("invalidUrl")).optional().or(z.literal("")),
+    contactLinks: z.object({
+      email: cfmEmailValidation,
+      phone: phoneValidation,
     phone2: z.string().optional().or(z.literal("")).refine(
       (phone) => {
         if (!phone || phone === "") return true; // Optional field
@@ -169,7 +172,7 @@ const employeeSchema = z.object({
           return isValidPhoneNumber(phone);
         }
       },
-      { message: "Invalid phone number or exceeds maximum length for this country" }
+      { message: t("invalidPhoneNumberOrExceeds") }
     ),
     whatsapp: z.string().optional().or(z.literal("")),
   }),
@@ -227,9 +230,10 @@ const employeeSchema = z.object({
     })
     .optional(),
   isActive: z.boolean(),
-});
+  });
+};
 
-type EmployeeFormData = z.infer<typeof employeeSchema>;
+type EmployeeFormData = z.infer<ReturnType<typeof createEmployeeSchema>>;
 
 interface EmployeeFormProps {
   open: boolean;
@@ -246,11 +250,14 @@ export function EmployeeForm({
   employee,
   onSuccess,
 }: EmployeeFormProps) {
+  const t = useTranslations("common");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [usePhotoUrl, setUsePhotoUrl] = useState(false);
+
+  const employeeSchema = createEmployeeSchema(t);
 
   const {
     register,
@@ -311,11 +318,11 @@ export function EmployeeForm({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
+        setError(t("pleaseSelectImageFile"));
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        setError("Image size must be less than 5MB");
+        setError(t("imageSizeMustBeLess"));
         return;
       }
       setPhotoFile(file);
@@ -363,7 +370,7 @@ export function EmployeeForm({
       setPhotoFile(null);
       setPhotoPreview(null);
     } catch (err: any) {
-      setError(err.message || "Failed to save employee");
+      setError(err.message || t("failedToSaveEmployee"));
     } finally {
       setIsLoading(false);
     }
@@ -374,19 +381,19 @@ export function EmployeeForm({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {employee ? "Edit Employee" : "Add New Employee"}
+            {employee ? t("editEmployee") : t("addNewEmployee")}
           </DialogTitle>
           <DialogDescription>
             {employee
-              ? "Update employee information and card details"
-              : "Create a new employee digital business card"}
+              ? t("updateEmployeeInformation")
+              : t("createNewEmployeeCard")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Photo Upload Section */}
           <div className="space-y-2">
-            <Label>Profile Picture</Label>
+            <Label>{t("photoUrl")}</Label>
             <div className="flex gap-4 items-start">
               <div className="flex-1">
                 <div className="flex gap-2 mb-2">
@@ -420,7 +427,7 @@ export function EmployeeForm({
                 ) : (
                   <Input
                     type="url"
-                    placeholder="https://example.com/photo.jpg"
+                    placeholder={t("photoUrlPlaceholder")}
                     {...register("photoUrl")}
                     disabled={isLoading}
                   />
@@ -431,7 +438,7 @@ export function EmployeeForm({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoPreview}
-                    alt="Preview"
+                    alt={t("preview")}
                     className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
                   />
                   <button
@@ -454,7 +461,7 @@ export function EmployeeForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">
-                First Name <span className="text-red-500">*</span>
+                {t("firstName")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="firstName"
@@ -473,7 +480,7 @@ export function EmployeeForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">
-                Last Name <span className="text-red-500">*</span>
+                {t("lastName")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="lastName"
@@ -495,11 +502,11 @@ export function EmployeeForm({
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">
-              Company Title <span className="text-red-500">*</span>
+              {t("companyTitle")} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="title"
-              placeholder="e.g., CTO, CFO, IT Manager"
+              placeholder={t("titlePlaceholder")}
               {...register("title")}
               disabled={isLoading}
             />
@@ -510,16 +517,16 @@ export function EmployeeForm({
 
           {/* Contact Links */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Contact Details</h3>
+            <h3 className="font-semibold text-gray-900">{t("contactDetails")}</h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
+                  {t("email")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="employee@cfm.com or employee@cfm.co.mz"
+                  placeholder={t("emailPlaceholderForm")}
                   {...register("contactLinks.email")}
                   disabled={isLoading}
                 />
@@ -529,12 +536,12 @@ export function EmployeeForm({
                   </p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Must end with @cfm.com or @cfm.co.mz
+                  {t("mustEndWithCfm")}
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">
-                  Phone <span className="text-red-500">*</span>
+                  {t("phoneNumber")} <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="contactLinks.phone"
@@ -546,7 +553,7 @@ export function EmployeeForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isLoading}
-                      placeholder="Enter phone number"
+                      placeholder={t("enterPhoneNumber")}
                       className="phone-input-custom"
                       numberInputProps={{
                         className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
@@ -567,7 +574,7 @@ export function EmployeeForm({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone2">Secondary Phone (Optional)</Label>
+                <Label htmlFor="phone2">{t("secondaryPhoneOptional")}</Label>
                 <Controller
                   name="contactLinks.phone2"
                   control={control}
@@ -578,7 +585,7 @@ export function EmployeeForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isLoading}
-                      placeholder="Enter secondary phone number"
+                      placeholder={t("enterSecondaryPhone")}
                       className="phone-input-custom"
                       numberInputProps={{
                         className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
@@ -598,11 +605,11 @@ export function EmployeeForm({
                   </p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Secondary phone number (optional)
+                  {t("secondaryPhoneOptionalDesc")}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
+                <Label htmlFor="whatsapp">{t("whatsappOptional")}</Label>
                 <Controller
                   name="contactLinks.whatsapp"
                   control={control}
@@ -613,7 +620,7 @@ export function EmployeeForm({
                       value={field.value}
                       onChange={field.onChange}
                       disabled={isLoading}
-                      placeholder="+258 XX XXX XXXX"
+                      placeholder={t("whatsappPlaceholder")}
                       className="phone-input-custom"
                       numberInputProps={{
                         className: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600",
@@ -628,7 +635,7 @@ export function EmployeeForm({
                   )}
                 />
                 <p className="text-xs text-gray-500">
-                  Employee&apos;s personal WhatsApp number
+                  {t("whatsappDesc")}
                 </p>
               </div>
             </div>
@@ -636,17 +643,16 @@ export function EmployeeForm({
 
           <div className="border-t pt-4">
             <p className="text-sm text-gray-600 mb-2">
-              <strong>Note:</strong> Company-wide information (logo, description, website, social media links)
-              are managed in the Company Settings page and will be displayed on all employee cards.
+              <strong>{t("note")}:</strong> {t("companyWideInfoNote")}
             </p>
           </div>
 
           {/* Active Status */}
           <div className="flex items-center justify-between">
             <div>
-              <Label>Active Status</Label>
+              <Label>{t("activeStatus")}</Label>
               <p className="text-sm text-gray-500">
-                Enable or disable this employee card
+                {t("enableDisableCard")}
               </p>
             </div>
             <Switch

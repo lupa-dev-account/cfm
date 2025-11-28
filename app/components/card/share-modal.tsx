@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import Image from "next/image";
 import { ChevronLeft, X, ExternalLink, Twitter, Linkedin, Instagram } from "lucide-react";
 import { FaWhatsapp, FaMeta } from "react-icons/fa6";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -57,15 +58,19 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `ORG:${escapeVCardValue(company.name)}\r\n`;
   }
 
-  // Phone - primary contact
-  if (contactLinks.phone) {
-    // Remove any non-digit characters except + for international format
-    const cleanPhone = contactLinks.phone.replace(/[^\d+]/g, "");
-    vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone}\r\n`;
+  // Phone - primary contact (mandatory field)
+  // Remove any non-digit characters except + for international format
+  const cleanPhone = contactLinks.phone.replace(/[^\d+]/g, "");
+  vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone}\r\n`;
+
+  // Phone2 - secondary contact
+  if (contactLinks.phone2) {
+    const cleanPhone2 = contactLinks.phone2.replace(/[^\d+]/g, "");
+    vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone2}\r\n`;
   }
 
-  // WhatsApp if different from main phone
-  if (contactLinks.whatsapp && contactLinks.whatsapp !== contactLinks.phone) {
+  // WhatsApp - always include if provided
+  if (contactLinks.whatsapp) {
     const cleanWhatsApp = contactLinks.whatsapp.replace(/[^\d+]/g, "");
     vcard += `TEL;TYPE=CELL,WA:${cleanWhatsApp}\r\n`;
   }
@@ -120,6 +125,7 @@ function generateVCard(card: EmployeeWithCard): string {
 }
 
 export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
+  const t = useTranslations("common");
   const cardUrl = typeof window !== "undefined" ? window.location.href : "";
   // Always generate unique vCard data for this specific card
   const vCardData = generateVCard(card);
@@ -132,7 +138,9 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
   };
 
   const handleShareSocial = (platform: string) => {
-    const shareText = `Check out ${card.name || "this"}'s business card`;
+    const shareText = card.name 
+      ? t("checkOutCard", { name: card.name })
+      : t("checkOutThis");
     const shareUrl = encodeURIComponent(cardUrl);
 
     let shareLink = "";
@@ -182,7 +190,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-lg font-semibold text-gray-900">Share This Card</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t("shareThisCard")}</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -200,7 +208,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
             <div className="relative w-20 h-20 rounded-full mb-6 overflow-hidden border-2 border-green-800 shadow-lg bg-white">
               <Image
                 src={card.photo_url}
-                alt={card.name || "Profile"}
+                alt={card.name || t("profile")}
                 fill
                 className="object-cover"
               />
@@ -240,7 +248,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
               />
             </div>
             <p className="text-sm text-gray-600 text-center">
-              Scan the QR code to view digital business card
+              {t("scanQrCode")}
             </p>
           </div>
 
@@ -256,7 +264,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
               <button
                 onClick={handleCopyLink}
                 className="p-2 hover:bg-gray-200 rounded transition-colors"
-                title="Copy link"
+                title={t("copyLink")}
               >
                 <ExternalLink className="h-4 w-4 text-gray-600" />
               </button>
@@ -265,7 +273,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
               onClick={handleDownloadVCard}
               className="w-full text-sm text-green-600 hover:text-green-700 underline"
             >
-              Download vCard
+              {t("downloadVCard")}
             </button>
           </div>
 
@@ -276,14 +284,14 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
             contactLinks.phone) && (
             <div className="space-y-3">
               <p className="text-sm text-gray-600 text-center">
-                Or check my social channels
+                {t("orCheckSocialChannels")}
               </p>
               <div className="flex justify-center gap-4">
                 {company?.facebook_url && (
                   <button
                     onClick={() => handleShareSocial("facebook")}
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
-                    title="Share on Facebook"
+                    title={t("shareOnFacebook")}
                   >
                     <FaMeta className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                   </button>
@@ -292,7 +300,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                   <button
                     onClick={() => window.open(company.instagram_url!, "_blank", "noopener,noreferrer")}
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
-                    title="Visit Instagram"
+                    title={t("visitInstagram")}
                   >
                     <Instagram className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                   </button>
@@ -301,7 +309,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                   <button
                     onClick={() => handleShareSocial("linkedin")}
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
-                    title="Share on LinkedIn"
+                    title={t("shareOnLinkedIn")}
                   >
                     <Linkedin className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                   </button>
@@ -310,7 +318,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                   <button
                     onClick={() => handleShareSocial("whatsapp")}
                     className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center hover:bg-green-800 hover:border-green-800 transition-all group"
-                    title="Share on WhatsApp"
+                    title={t("shareOnWhatsApp")}
                   >
                     <FaWhatsapp className="h-6 w-6 text-gray-700 group-hover:text-white transition-colors" />
                   </button>

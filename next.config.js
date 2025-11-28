@@ -16,9 +16,19 @@ const nextConfig = {
       },
     ],
   },
+  // Disable source maps in development to avoid Turbopack source map issues
+  productionBrowserSourceMaps: false,
+  // Turbopack configuration
   turbopack: {
     root: __dirname,
   },
+  // Webpack configuration for better stability (optional - uncomment if issues persist)
+  // webpack: (config, { dev }) => {
+  //   if (dev) {
+  //     config.devtool = false; // Disable source maps in dev
+  //   }
+  //   return config;
+  // },
 }
 
 module.exports = withNextIntl(nextConfig);

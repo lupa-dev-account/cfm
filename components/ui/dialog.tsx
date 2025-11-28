@@ -69,31 +69,36 @@ const DialogContent = React.forwardRef<
   if (!context.open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <>
+      {/* Backdrop - only visible when dialog is open */}
       <div
-        className="fixed inset-0 bg-black/50"
+        className="fixed inset-0 bg-black/50 z-[49]"
         onClick={() => context.onOpenChange(false)}
+        aria-hidden="true"
       />
-      <div
-        ref={ref}
-        className={cn(
-          "relative z-50 w-full max-w-lg max-h-[90vh] overflow-y-auto",
-          "bg-white rounded-lg shadow-lg p-6",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 right-4"
-          onClick={() => context.onOpenChange(false)}
+      {/* Dialog Content */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+        <div
+          ref={ref}
+          className={cn(
+            "relative z-50 w-full max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
+            "bg-white rounded-lg shadow-lg p-6",
+            className
+          )}
+          {...props}
         >
-          <X className="h-4 w-4" />
-        </Button>
+          {children}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4"
+            onClick={() => context.onOpenChange(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 });
 DialogContent.displayName = "DialogContent";
