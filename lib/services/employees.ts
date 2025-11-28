@@ -17,11 +17,13 @@ export interface EmployeeFormData {
   socialLinks?: SocialLinks; // Optional - company social links are now in companies table
   businessHours?: BusinessHours;
   isActive: boolean;
+  titleTranslations?: Record<string, string>; // Optional translations for the title in different locales
 }
 
 export interface EmployeeWithCard extends EmployeeCard {
   name?: string;
   title?: string;
+  title_translations?: Record<string, string>;
 }
 
 /**
@@ -112,11 +114,14 @@ export async function createEmployee(
     photoUrl = await uploadEmployeePhoto(employeeData.photoFile, employeeId);
   }
 
-  // Store name, title, and company_id in theme JSON
+  // Store name, title, title_translations, and company_id in theme JSON
   const theme = {
     name: fullName,
     title: employeeData.title,
     company_id: companyId,
+    ...(employeeData.titleTranslations && Object.keys(employeeData.titleTranslations).length > 0
+      ? { title_translations: employeeData.titleTranslations }
+      : {}),
   };
 
   // Default empty social links (since these are now in companies table)
@@ -170,13 +175,22 @@ export async function updateEmployee(
     photoUrl = await uploadEmployeePhoto(employeeData.photoFile, employeeId);
   }
 
-  // Update theme with name/title if provided, preserve company_id
+  // Update theme with name/title/title_translations if provided, preserve company_id
   const theme = (existingCard as any).theme || {};
   if (employeeData.firstName && employeeData.lastName) {
     theme.name = `${employeeData.firstName} ${employeeData.lastName}`;
   }
   if (employeeData.title) {
     theme.title = employeeData.title;
+  }
+  // Update title_translations if provided
+  if (employeeData.titleTranslations !== undefined) {
+    if (employeeData.titleTranslations && Object.keys(employeeData.titleTranslations).length > 0) {
+      theme.title_translations = employeeData.titleTranslations;
+    } else {
+      // Remove title_translations if empty object provided
+      delete theme.title_translations;
+    }
   }
   // Preserve company_id if it exists
   if (theme.company_id) {
@@ -277,17 +291,21 @@ export async function getEmployeesByCompany(
     throw new Error(`Failed to fetch employees: ${error.message}`);
   }
 
-  // Filter by company_id stored in theme and map to include name and title
+  // Filter by company_id stored in theme and map to include name, title, and title_translations
   const cards = (data || []) as any[];
   return cards
     .filter((card) => {
       const theme = card.theme as any;
       return theme?.company_id === companyId;
     })
-    .map((card) => ({
-      ...card,
-      name: (card.theme as any)?.name,
-      title: (card.theme as any)?.title,
-    })) as EmployeeWithCard[];
+    .map((card) => {
+      const theme = card.theme as any;
+      return {
+        ...card,
+        name: theme?.name,
+        title: theme?.title,
+        title_translations: theme?.title_translations,
+      };
+    }) as EmployeeWithCard[];
 }
 

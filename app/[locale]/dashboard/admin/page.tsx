@@ -53,7 +53,7 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">{t("superAdminDashboard")}</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.email}</span>
-            <Button onClick={handleLogout} variant="outline">
+            <Button onClick={handleLogout} variant="outline" className="bg-green-600 hover:bg-green-700 text-white border-green-600">
               {t("logout")}
             </Button>
           </div>
