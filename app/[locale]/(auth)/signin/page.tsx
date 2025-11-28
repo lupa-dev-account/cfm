@@ -151,14 +151,16 @@ export default function SignInPage() {
         {/* Logo - Mobile only */}
         <div className="flex justify-center mb-8 md:hidden">
           <Link href={`/${locale}/home`}>
-            <Image
-              src="/assets/cfm_logo_light.webp"
-              alt="CFM Logo"
-              width={150}
-              height={60}
-              className="object-contain"
-              priority
-            />
+            <div className="relative w-[150px] h-[60px]">
+              <Image
+                src="/assets/cfm_logo_light.webp"
+                alt="CFM Logo"
+                fill
+                sizes="150px"
+                className="object-contain"
+                priority
+              />
+            </div>
           </Link>
         </div>
 
@@ -259,7 +261,8 @@ export default function SignInPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                variant="default"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
                 disabled={isLoading}
                 size="lg"
               >

@@ -81,12 +81,15 @@ type SectionTitleProps = {
   children: React.ReactNode;
 };
 
-const SectionTitle: React.FC<SectionTitleProps> = ({ children }) => (
-  <h2 className="text-3xl font-bold text-center text-black mb-6 relative w-fit mx-auto">
-    {children}
-    <span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-20 h-[4px] bg-green-700 rounded"></span>
-  </h2>
-);
+const SectionTitle: React.FC<SectionTitleProps> = ({ children }) => {
+  // Force re-render by using a key based on children content
+  return (
+    <h2 className="text-3xl font-bold text-center text-black mb-6 relative w-fit mx-auto" key={String(children)}>
+      {children}
+      <span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-20 h-[4px] bg-green-700 rounded"></span>
+    </h2>
+  );
+};
 
 
 type CompanyService = Database["public"]["Tables"]["company_services"]["Row"];
@@ -129,6 +132,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
                   src={service.icon_name}
                   alt={title}
                   fill
+                  sizes="(max-width: 768px) 96px, 112px"
                   className="object-contain"
                 />
               </div>
@@ -209,7 +213,7 @@ function escapeVCardValue(value: string): string {
 /**
  * Generate vCard format for phonebook integration
  */
-function generateVCard(card: EmployeeWithCard): string {
+function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -234,11 +238,9 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `ORG:${escapeVCardValue(company.name)}\r\n`;
   }
 
-  // Phone - primary contact
-  if (contactLinks.phone) {
-    const cleanPhone = contactLinks.phone.replace(/[^\d+]/g, "");
-    vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone}\r\n`;
-  }
+  // Phone - primary contact (mandatory field)
+  const cleanPhone = contactLinks.phone.replace(/[^\d+]/g, "");
+  vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone}\r\n`;
 
   // Phone2 - secondary contact
   if (contactLinks.phone2) {
@@ -246,8 +248,8 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `TEL;TYPE=CELL,VOICE:${cleanPhone2}\r\n`;
   }
 
-  // WhatsApp if different from main phone
-  if (contactLinks.whatsapp && contactLinks.whatsapp !== contactLinks.phone) {
+  // WhatsApp - always include if provided
+  if (contactLinks.whatsapp) {
     const cleanWhatsApp = contactLinks.whatsapp.replace(/[^\d+]/g, "");
     vcard += `TEL;TYPE=CELL,WA:${cleanWhatsApp}\r\n`;
   }
@@ -264,8 +266,16 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `URL:${company.website_url}\r\n`;
   }
 
-  // Photo URL (if available)
-  if (card.photo_url) {
+  // Photo - embedded as base64 (most reliable for contact apps)
+  if (photoBase64) {
+    // Determine image type (default to JPEG if not specified)
+    const imageType = photoType || "JPEG";
+    // vCard 3.0 format: PHOTO;ENCODING=b;TYPE=JPEG:base64data
+    // Note: Some apps require the base64 to be on a single line, others allow line breaks
+    // We'll keep it on one line for maximum compatibility
+    vcard += `PHOTO;ENCODING=b;TYPE=${imageType}:${photoBase64}\r\n`;
+  } else if (card.photo_url) {
+    // Fallback to URL if base64 not available (less reliable but better than nothing)
     vcard += `PHOTO;VALUE=URI;TYPE=URL:${card.photo_url}\r\n`;
   }
 
@@ -304,11 +314,12 @@ function generateVCard(card: EmployeeWithCard): string {
 
 
 export default function EmployeeCardPage() {
-  const t = useTranslations('common');
   const params = useParams();
   const slug = params.slug as string;
-  // Get locale from URL params (more reliable than useLocale hook)
-  const locale = (params.locale as string) || useLocale() || 'en';
+  // Use useLocale() hook for reactivity - it will trigger re-renders when locale changes
+  const locale = useLocale();
+  // Use translations - this will automatically update when locale changes
+  const t = useTranslations('common');
   const [card, setCard] = useState<EmployeeWithCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -418,7 +429,7 @@ export default function EmployeeCardPage() {
         // Create card with metadata - prefer theme data, fallback to user data
         const cardWithMetadata: EmployeeWithCard = {
           ...(data as any),
-          name: theme?.name || (userData ? `${(userData as any).first_name || ''} ${(userData as any).last_name || ''}`.trim() : null) || "Employee",
+          name: theme?.name || (userData ? `${(userData as any).first_name || ''} ${(userData as any).last_name || ''}`.trim() : null) || t('employee'),
           title: theme?.title || (userData as any)?.title || "",
           company: companyData,
           services: servicesData,
@@ -437,6 +448,11 @@ export default function EmployeeCardPage() {
 
     loadCard();
   }, [slug, supabase, t, locale]); // Include locale to reload when language changes
+
+  // Force re-render when locale changes to update translations
+  useEffect(() => {
+    // This effect ensures the component re-renders when locale changes
+  }, [locale]);
 
   // Auto-rotate services carousel
   useEffect(() => {
@@ -465,9 +481,56 @@ export default function EmployeeCardPage() {
     }
   }, [card?.services, isMobile, serviceIndex]);
 
-  const handleDownloadVCard = () => {
+  const handleDownloadVCard = async () => {
     if (!card) return;
-    const vCardData = generateVCard(card);
+
+    let photoBase64: string | undefined;
+    let photoType: string | undefined;
+
+    // Try to fetch and convert photo to base64
+    if (card.photo_url) {
+      try {
+        const response = await fetch(card.photo_url);
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          // Convert blob to base64
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+              const base64String = (reader.result as string).split(',')[1];
+              resolve(base64String);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+          photoBase64 = base64;
+          
+          // Determine image type from blob
+          const mimeType = blob.type;
+          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            photoType = 'JPEG';
+          } else if (mimeType.includes('png')) {
+            photoType = 'PNG';
+          } else if (mimeType.includes('gif')) {
+            photoType = 'GIF';
+          } else if (mimeType.includes('webp')) {
+            photoType = 'WEBP';
+          } else {
+            photoType = 'JPEG'; // Default fallback
+          }
+        }
+      } catch (error) {
+        // If image fetch fails, we'll fall back to URL method in generateVCard
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to fetch photo for vCard, falling back to URL:', error);
+        }
+      }
+    }
+
+    const vCardData = generateVCard(card, photoBase64, photoType);
     const blob = new Blob([vCardData], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -525,7 +588,7 @@ export default function EmployeeCardPage() {
   
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100" key={`card-${locale}`}>
       {/* Centered container with max-width */}
       <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-lg overflow-hidden">
         {/* Header Section with Company Banner */}
@@ -533,9 +596,12 @@ export default function EmployeeCardPage() {
           {company?.banner_url && (
             <Image
               src={company.banner_url}
-              alt={company.name || "Company Banner"}
+              alt={company.name || t('companyBanner')}
               fill
+              sizes="(max-width: 768px) 100vw, 448px"
               className="object-cover"
+              loading="eager"
+              priority
             />
           )}
 
@@ -543,7 +609,7 @@ export default function EmployeeCardPage() {
           <div className="absolute inset-0 bg-[rgba(17,17,17,0.12)] pointer-events-none" />
 
           {/* Language Switcher - Top Right */}
-          <div className="absolute top-3 right-3 z-10">
+          <div className="absolute top-3 right-3 z-50">
             <LanguageSwitcher variant="inline" />
           </div>
         </header>
@@ -554,8 +620,9 @@ export default function EmployeeCardPage() {
             <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-green-800 shadow-lg bg-white">
               <Image
                 src={card.photo_url}
-                alt={card.name || "Profile"}
+                alt={card.name || t('profile')}
                 fill
+                sizes="128px"
                 className="object-cover"
               />
             </div>
@@ -620,17 +687,24 @@ export default function EmployeeCardPage() {
         <main className="px-4 py-4">
 
           {/* Contact Section */}
-          <section className="mb-8">
-          <SectionTitle>{t('contact')}</SectionTitle>
+          <section className="mb-8" key={`contact-${locale}`}>
+          <SectionTitle key={`contact-title-${locale}`}>{t('contact')}</SectionTitle>
 
 
   <div className="space-y-3">
-    {contactLinks.phone && (
-      <ContactItem icon={FaWhatsapp} href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}>
-        {formatPhoneNumber(contactLinks.phone)}
+    {/* WhatsApp - always show if provided */}
+    {contactLinks.whatsapp && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp)}
       </ContactItem>
     )}
 
+    {/* Primary Phone - mandatory field */}
+    <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}>
+      {formatPhoneNumber(contactLinks.phone)}
+    </ContactItem>
+
+    {/* Secondary Phone - always show if provided */}
     {contactLinks.phone2 && (
       <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone2.replace(/\s/g, "")}`}>
         {formatPhoneNumber(contactLinks.phone2)}
@@ -654,8 +728,8 @@ export default function EmployeeCardPage() {
 
           {/* Services Section with Carousel */}
           {slides.length > 0 && (
-  <section className="mb-8">
-    <SectionTitle>{t('services')}</SectionTitle>
+  <section className="mb-8" key={`services-${locale}`}>
+    <SectionTitle key={`services-title-${locale}`}>{t('services')}</SectionTitle>
 
     <div className="relative">
       {slides.length > 1 && (
@@ -796,7 +870,7 @@ export default function EmployeeCardPage() {
     </button>
 
     <a
-      href={`tel:${contactLinks.phone?.replace(/\s/g, "") || ""}`}
+      href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}
       className={moreTileClass}
     >
       <MdPhone className={moreIconClass} />
