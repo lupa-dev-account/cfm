@@ -112,7 +112,7 @@ export function EmployeeList({
             <TableHead className="text-right text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{t('actions')}</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody key={locale}>
           {employees.map((employee) => {
             const isProcessing = processingIds.has(employee.id);
             return (
@@ -143,11 +143,11 @@ export function EmployeeList({
                 <TableCell className="font-medium text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">
                   <div className="flex flex-col">
                     <span className="text-black">{employee.name || t('unnamedEmployee')}</span>
-                    <span className="text-[10px] text-black sm:hidden">{translateTitle(employee.title, employee.title_translations, locale) || "-"}</span>
+                    <span className="text-[10px] text-black sm:hidden">{translateTitle(employee.title, employee.title_translations, locale, t) || "-"}</span>
                     <span className="text-[10px] text-black md:hidden truncate max-w-[150px]">{employee.contact_links.email}</span>
                   </div>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{translateTitle(employee.title, employee.title_translations, locale) || "-"}</TableCell>
+                <TableCell className="hidden sm:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 text-black">{translateTitle(employee.title, employee.title_translations, locale, t) || "-"}</TableCell>
                 <TableCell className="hidden md:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 truncate max-w-[200px] text-black">{employee.contact_links.email}</TableCell>
                 <TableCell className="py-2 md:py-3 px-2 md:px-4">
                   <div className="flex items-center gap-1 md:gap-2">
