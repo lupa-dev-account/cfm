@@ -278,7 +278,8 @@ export async function getEmployeesByCompany(
   }
 
   // Filter by company_id stored in theme and map to include name and title
-  return (data || [])
+  const cards = (data || []) as any[];
+  return cards
     .filter((card) => {
       const theme = card.theme as any;
       return theme?.company_id === companyId;
