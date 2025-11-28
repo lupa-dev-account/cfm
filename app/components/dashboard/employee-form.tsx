@@ -465,7 +465,7 @@ export function EmployeeForm({
                     }}
                     className="absolute -top-2 -right-2 bg-white border border-gray-300 text-gray-700 hover:bg-black hover:text-white rounded-full p-1 transition-colors"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3 w-3 text-gray-700 hover:text-white" />
                   </button>
                 </div>
               )}

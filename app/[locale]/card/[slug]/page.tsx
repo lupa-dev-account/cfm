@@ -68,7 +68,7 @@ const ContactItem: React.FC<ContactItemProps> = ({ icon: Icon, href, children, e
       <Icon className="p-1.5 h-10 w-10 bg-green-700 text-white rounded-full flex-shrink-0" />
       <a
         href={href}
-        className="text-gray-900 text-base font-medium hover:text-green-700 flex-1 break-all"
+        className="text-black text-base font-medium hover:text-green-700 flex-1 break-all"
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
         {children}
@@ -146,7 +146,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
         </>
       )}
 
-      <h3 className="font-semibold text-gray-900 mb-1 text-base md:text-lg" key={`title-${currentLocale}`}>
+      <h3 className="font-semibold text-black mb-1 text-base md:text-lg" key={`title-${currentLocale}`}>
         {title}
       </h3>
 
@@ -197,7 +197,7 @@ const moreTileClass =
   "flex flex-col items-center gap-1.5 p-3 border border-green-800 rounded hover:bg-green-50 transition-colors";
 
 const moreIconClass = "h-4 w-4 text-green-600";
-const moreLabelClass = "text-xs text-gray-900";
+const moreLabelClass = "text-xs text-black";
 
 
 /**
@@ -835,7 +835,7 @@ export default function EmployeeCardPage() {
             {day}
           </span>
 
-          <span className="text-gray-900 text-sm md:text-base text-right">
+          <span className="text-black text-sm md:text-base text-right">
             {label}
           </span>
         </div>
