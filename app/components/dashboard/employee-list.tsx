@@ -20,6 +20,7 @@ import {
 } from "@/lib/services/employees";
 import type { EmployeeWithCard } from "@/lib/types";
 import { Edit, Trash2, Eye } from "lucide-react";
+import { DeleteConfirmationModal } from "./delete-confirmation-modal";
 
 interface EmployeeListProps {
   employees: EmployeeWithCard[];
@@ -36,6 +37,8 @@ export function EmployeeList({
 }: EmployeeListProps) {
   const t = useTranslations('common');
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeWithCard | null>(null);
 
   const handleToggleStatus = async (employee: EmployeeWithCard) => {
     setProcessingIds((prev) => new Set(prev).add(employee.id));
@@ -53,24 +56,25 @@ export function EmployeeList({
     }
   };
 
-  const handleDelete = async (employee: EmployeeWithCard) => {
-    const confirmMessage = employee.name
-      ? t('confirmDeleteEmployee', { name: employee.name })
-      : t('confirmDeleteEmployeeDefault');
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+  const handleDeleteClick = (employee: EmployeeWithCard) => {
+    setEmployeeToDelete(employee);
+    setDeleteModalOpen(true);
+  };
 
-    setProcessingIds((prev) => new Set(prev).add(employee.id));
+  const handleDeleteConfirm = async () => {
+    if (!employeeToDelete) return;
+
+    setProcessingIds((prev) => new Set(prev).add(employeeToDelete.id));
     try {
-      await deleteEmployee(employee.employee_id);
+      await deleteEmployee(employeeToDelete.employee_id);
       onRefresh();
+      setEmployeeToDelete(null);
     } catch (error: any) {
       alert(`${t('failedToDeleteEmployee')}: ${error.message}`);
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
-        next.delete(employee.id);
+        next.delete(employeeToDelete.id);
         return next;
       });
     }
@@ -78,7 +82,7 @@ export function EmployeeList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-6 md:py-12">
         <Loading size="lg" />
       </div>
     );
@@ -86,44 +90,44 @@ export function EmployeeList({
 
   if (employees.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">{t('noEmployeesFound')}</p>
+      <div className="text-center py-6 md:py-12">
+        <p className="text-xs md:text-sm text-gray-500">{t('noEmployeesFound')}</p>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[80px]">{t('photo')}</TableHead>
-            <TableHead>{t('name')}</TableHead>
-            <TableHead>{t('title')}</TableHead>
-            <TableHead>{t('email')}</TableHead>
-            <TableHead>{t('status')}</TableHead>
-            <TableHead className="text-right">{t('actions')}</TableHead>
+          <TableRow className="bg-gray-50">
+            <TableHead className="w-[50px] md:w-[80px] text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('photo')}</TableHead>
+            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('name')}</TableHead>
+            <TableHead className="hidden sm:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('title')}</TableHead>
+            <TableHead className="hidden md:table-cell text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('email')}</TableHead>
+            <TableHead className="text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('status')}</TableHead>
+            <TableHead className="text-right text-[10px] md:text-sm py-2 md:py-3 px-2 md:px-4">{t('actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {employees.map((employee) => {
             const isProcessing = processingIds.has(employee.id);
             return (
-              <TableRow key={employee.id}>
-                <TableCell>
+              <TableRow key={employee.id} className="hover:bg-gray-50">
+                <TableCell className="py-2 md:py-3 px-2 md:px-4">
                   {employee.photo_url ? (
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                    <div className="relative w-8 h-8 md:w-12 md:h-12 rounded-full overflow-hidden border-2 border-gray-200">
                       <Image
                         src={employee.photo_url}
-                        alt={employee.name || "Employee"}
+                        alt={employee.name || t('employee')}
                         fill
                         sizes="48px"
                         className="object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">
+                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400 text-[10px] md:text-xs">
                         {employee.name
                           ?.split(" ")
                           .map((n) => n[0])
@@ -133,20 +137,25 @@ export function EmployeeList({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">
-                  {employee.name || t('unnamedEmployee')}
+                <TableCell className="font-medium text-xs md:text-sm py-2 md:py-3 px-2 md:px-4">
+                  <div className="flex flex-col">
+                    <span>{employee.name || t('unnamedEmployee')}</span>
+                    <span className="text-[10px] text-gray-500 sm:hidden">{employee.title || "-"}</span>
+                    <span className="text-[10px] text-gray-500 md:hidden truncate max-w-[150px]">{employee.contact_links.email}</span>
+                  </div>
                 </TableCell>
-                <TableCell>{employee.title || "-"}</TableCell>
-                <TableCell>{employee.contact_links.email}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
+                <TableCell className="hidden sm:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4">{employee.title || "-"}</TableCell>
+                <TableCell className="hidden md:table-cell text-xs md:text-sm py-2 md:py-3 px-2 md:px-4 truncate max-w-[200px]">{employee.contact_links.email}</TableCell>
+                <TableCell className="py-2 md:py-3 px-2 md:px-4">
+                  <div className="flex items-center gap-1 md:gap-2">
                     <Switch
                       checked={employee.is_active}
                       onCheckedChange={() => handleToggleStatus(employee)}
                       disabled={isProcessing}
+                      className="scale-75 md:scale-100"
                     />
                     <span
-                      className={`text-sm ${
+                      className={`text-[10px] md:text-sm ${
                         employee.is_active
                           ? "text-green-600"
                           : "text-gray-400"
@@ -156,16 +165,17 @@ export function EmployeeList({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
+                <TableCell className="text-right py-2 md:py-3 px-2 md:px-4">
+                  <div className="flex items-center justify-end gap-1 md:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(employee)}
                       disabled={isProcessing}
                       title={t('edit')}
+                      className="h-7 w-7 md:h-9 md:w-9 p-0"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -179,18 +189,19 @@ export function EmployeeList({
                           ? t('viewCard')
                           : t('cardIsInactive')
                       }
+                      className="h-7 w-7 md:h-9 md:w-9 p-0"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(employee)}
+                      onClick={() => handleDeleteClick(employee)}
                       disabled={isProcessing}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 md:h-9 md:w-9 p-0"
                       title={t('delete')}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -199,6 +210,15 @@ export function EmployeeList({
           })}
         </TableBody>
       </Table>
+      
+      {employeeToDelete && (
+        <DeleteConfirmationModal
+          open={deleteModalOpen}
+          onOpenChange={setDeleteModalOpen}
+          employeeName={employeeToDelete.name || undefined}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 
 export default function AdminDashboard() {
+  const t = useTranslations('common');
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +50,11 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Super Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("superAdminDashboard")}</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button onClick={handleLogout} variant="outline">
-              Logout
+              {t("logout")}
             </Button>
           </div>
         </div>
@@ -62,40 +64,40 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Companies</CardTitle>
-              <CardDescription>Manage all client companies</CardDescription>
+              <CardTitle>{t("companies")}</CardTitle>
+              <CardDescription>{t("manageAllCompanies")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Coming soon...</p>
+              <p className="text-sm text-gray-600">{t("comingSoon")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Subscriptions</CardTitle>
-              <CardDescription>Manage subscription plans</CardDescription>
+              <CardTitle>{t("subscriptions")}</CardTitle>
+              <CardDescription>{t("manageSubscriptionPlans")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Coming soon...</p>
+              <p className="text-sm text-gray-600">{t("comingSoon")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Analytics</CardTitle>
-              <CardDescription>View global analytics</CardDescription>
+              <CardTitle>{t("analytics")}</CardTitle>
+              <CardDescription>{t("viewGlobalAnalytics")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Coming soon...</p>
+              <p className="text-sm text-gray-600">{t("comingSoon")}</p>
             </CardContent>
           </Card>
         </div>
 
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Welcome, Super Admin!</CardTitle>
+            <CardTitle>{t("welcomeSuperAdmin")}</CardTitle>
             <CardDescription>
-              You have full access to manage the platform
+              {t("fullAccessDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>

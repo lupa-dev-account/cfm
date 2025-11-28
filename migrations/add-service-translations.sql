@@ -11,3 +11,4 @@ ADD COLUMN IF NOT EXISTS description_translations JSONB;
 --   description_translations = '{"en": "Work with a view to improving our infrastructure.", "ru": "Работа с целью улучшения нашей инфраструктуры.", "pt": "Trabalhar com o objetivo de melhorar nossa infraestrutura.", "es": "Trabajar con el objetivo de mejorar nuestra infraestructura.", "fr": "Travailler dans le but d'améliorer notre infrastructure.", "de": "Arbeiten mit dem Ziel, unsere Infrastruktur zu verbessern.", "it": "Lavorare con l'obiettivo di migliorare la nostra infrastruttura.", "zh": "致力于改善我们的基础设施。", "ja": "インフラストラクチャの改善を目指して取り組む。", "ar": "العمل بهدف تحسين بنيتنا التحتية."}'::jsonb
 -- WHERE id = 'your-service-id';
 
+

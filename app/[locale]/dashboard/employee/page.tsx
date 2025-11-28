@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 
 export default function EmployeeDashboard() {
+  const t = useTranslations('common');
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +50,11 @@ export default function EmployeeDashboard() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Card</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("myCard")}</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.email}</span>
             <Button onClick={handleLogout} variant="outline">
-              Logout
+              {t("logout")}
             </Button>
           </div>
         </div>
@@ -62,41 +64,41 @@ export default function EmployeeDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>My Digital Card</CardTitle>
-              <CardDescription>Manage your public business card</CardDescription>
+              <CardTitle>{t("myDigitalCard")}</CardTitle>
+              <CardDescription>{t("managePublicCard")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Coming soon...</p>
+              <p className="text-sm text-gray-600">{t("comingSoon")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Analytics</CardTitle>
-              <CardDescription>View your card analytics</CardDescription>
+              <CardTitle>{t("analytics")}</CardTitle>
+              <CardDescription>{t("viewCardAnalytics")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600">Coming soon...</p>
+              <p className="text-sm text-gray-600">{t("comingSoon")}</p>
             </CardContent>
           </Card>
         </div>
 
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Welcome!</CardTitle>
+            <CardTitle>{t("welcome")}</CardTitle>
             <CardDescription>
-              Manage your digital business card
+              {t("manageDigitalCard")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">
-              User ID: {user?.id}
+              {t("userId")}: {user?.id}
             </p>
             <p className="text-sm text-gray-600">
-              Role: {user?.role}
+              {t("role")}: {user?.role}
             </p>
             <p className="text-sm text-gray-600">
-              Company ID: {user?.company_id || "Not assigned"}
+              {t("companyId")}: {user?.company_id || t("notAssigned")}
             </p>
           </CardContent>
         </Card>

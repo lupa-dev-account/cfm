@@ -11,8 +11,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Root layout just returns children
-  // The actual html/body wrapper is in app/[locale]/layout.tsx
-  return children;
+  // Next.js requires html/body tags in root layout
+  // The locale-specific attributes (lang, dir) are set in app/[locale]/layout.tsx
+  return (
+    <html suppressHydrationWarning>
+      <body>
+        {children}
+      </body>
+    </html>
+  );
 }
 

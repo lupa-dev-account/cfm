@@ -19,3 +19,4 @@ ADD COLUMN IF NOT EXISTS description_translations JSONB;
 -- }'::jsonb
 -- WHERE id = 'YOUR-COMPANY-ID-HERE'::uuid;
 
+

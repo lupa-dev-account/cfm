@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ type CompanyFormData = {
 
 export default function CompanySettingsPage() {
   const t = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [company, setCompany] = useState<Company | null>(null);
@@ -144,7 +145,7 @@ export default function CompanySettingsPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/signin");
+    router.push(`/${locale}/home`);
   };
 
   if (loading) {
@@ -156,44 +157,46 @@ export default function CompanySettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <nav className="bg-white shadow-sm border-b overflow-x-hidden">
+        <div className="container mx-auto px-3 md:px-4 py-2 md:py-4 flex justify-between items-center overflow-x-hidden">
+          <div className="flex items-center gap-2 md:gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push("/dashboard/company")}
+              className="text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t('backToDashboard')}
+              <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{t('backToDashboard')}</span>
+              <span className="sm:hidden">{t('backToDashboard').split(' ')[0]}</span>
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">{t('companySettings')}</h1>
+            <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">{t('companySettings')}</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.email}</span>
-            <Button onClick={handleLogout} variant="outline">
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-[10px] md:text-sm text-gray-600 hidden sm:inline truncate max-w-[100px] md:max-w-none">{user?.email}</span>
+            <Button onClick={handleLogout} variant="outline" size="sm" className="text-[10px] md:text-sm px-2 md:px-3 py-1 md:py-2 h-7 md:h-9 whitespace-nowrap">
               {t('logout')}
             </Button>
           </div>
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Building2 className="h-6 w-6 text-green-600" />
+      <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 max-w-4xl overflow-x-hidden">
+        <Card className="p-3 md:p-6">
+          <CardHeader className="px-0 pt-0 pb-3 md:pb-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Building2 className="h-4 w-4 md:h-6 md:w-6 text-green-600 flex-shrink-0" />
               <div>
-                <CardTitle>{t('companyInformation')}</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base md:text-xl">{t('companyInformation')}</CardTitle>
+                <CardDescription className="text-xs md:text-sm mt-0.5 md:mt-1">
                   {t('companyInformationDesc')}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <CardContent className="px-0 pt-0">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
               {/* Company Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">
