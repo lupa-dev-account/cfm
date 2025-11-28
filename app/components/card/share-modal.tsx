@@ -33,7 +33,7 @@ function escapeVCardValue(value: string): string {
  * Generate vCard format for phonebook integration
  * This format ensures phones automatically prompt to save contact when QR is scanned
  */
-function generateVCard(card: EmployeeWithCard): string {
+function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?: string): string {
   const contactLinks = card.contact_links;
   const company = card.company;
 
@@ -87,8 +87,16 @@ function generateVCard(card: EmployeeWithCard): string {
     vcard += `URL:${company.website_url}\r\n`;
   }
 
-  // Photo URL (if available)
-  if (card.photo_url) {
+  // Photo - embedded as base64 (most reliable for contact apps)
+  if (photoBase64) {
+    // Determine image type (default to JPEG if not specified)
+    const imageType = photoType || "JPEG";
+    // vCard 3.0 format: PHOTO;ENCODING=b;TYPE=JPEG:base64data
+    // Note: Some apps require the base64 to be on a single line, others allow line breaks
+    // We'll keep it on one line for maximum compatibility
+    vcard += `PHOTO;ENCODING=b;TYPE=${imageType}:${photoBase64}\r\n`;
+  } else if (card.photo_url) {
+    // Fallback to URL if base64 not available (less reliable but better than nothing)
     vcard += `PHOTO;VALUE=URI;TYPE=URL:${card.photo_url}\r\n`;
   }
 
@@ -127,8 +135,6 @@ function generateVCard(card: EmployeeWithCard): string {
 export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
   const t = useTranslations("common");
   const cardUrl = typeof window !== "undefined" ? window.location.href : "";
-  // Always generate unique vCard data for this specific card
-  const vCardData = generateVCard(card);
   const company = card.company;
   const contactLinks = card.contact_links;
 
@@ -164,7 +170,57 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
     }
   };
 
-  const handleDownloadVCard = () => {
+  const handleDownloadVCard = async () => {
+    if (!card) return;
+
+    let photoBase64: string | undefined;
+    let photoType: string | undefined;
+
+    // Try to fetch and convert photo to base64
+    if (card.photo_url) {
+      try {
+        const response = await fetch(card.photo_url);
+        if (response.ok) {
+          const blob = await response.blob();
+          
+          // Convert blob to base64
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+              const base64String = (reader.result as string).split(',')[1];
+              resolve(base64String);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+          photoBase64 = base64;
+          
+          // Determine image type from blob
+          const mimeType = blob.type;
+          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            photoType = 'JPEG';
+          } else if (mimeType.includes('png')) {
+            photoType = 'PNG';
+          } else if (mimeType.includes('gif')) {
+            photoType = 'GIF';
+          } else if (mimeType.includes('webp')) {
+            photoType = 'WEBP';
+          } else {
+            photoType = 'JPEG'; // Default fallback
+          }
+        }
+      } catch (error) {
+        // If image fetch fails, we'll fall back to URL method in generateVCard
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to fetch photo for vCard, falling back to URL:', error);
+        }
+      }
+    }
+
+    // Generate vCard with photo and phone included
+    const vCardData = generateVCard(card, photoBase64, photoType);
     const blob = new Blob([vCardData], { type: "text/vcard" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
