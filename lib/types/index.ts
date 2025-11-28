@@ -82,6 +82,7 @@ export interface EmployeeCard {
 export interface EmployeeWithCard extends EmployeeCard {
   name?: string;
   title?: string;
+  title_translations?: Record<string, string>;
   company?: Company | null;
   services?: CompanyService[] | null;
 }
