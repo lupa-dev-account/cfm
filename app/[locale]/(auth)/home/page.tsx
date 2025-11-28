@@ -15,21 +15,27 @@ export default function LoginPage() {
   const tAuth = useTranslations('auth');
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Language Switcher - Fixed top right on mobile */}
+      <div className="fixed top-4 right-4 z-50 md:hidden">
+        <LanguageSwitcher variant="inline" />
+      </div>
+
       {/* Header - Visible on tablet+ */}
       <header className="hidden md:flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
         <Link href={`/${locale}/home`} className="flex items-center">
-          <Image
-            src="/assets/cfm_logo_light.webp"
-            alt="CFM Logo"
-            width={150}
-            height={60}
-            className="object-contain"
-            priority
-          />
+          <div className="relative w-[150px] h-[60px]">
+            <Image
+              src="/assets/cfm_logo_light.webp"
+              alt="CFM Logo"
+              fill
+              sizes="150px"
+              className="object-contain"
+            />
+          </div>
         </Link>
         <div className="flex items-center gap-3">
           <Link href={`/${locale}/signin`}>
-            <Button variant="ghost" size="default">
+            <Button variant="default" size="default" className="bg-green-600 hover:bg-green-700 text-white">
               {tAuth('signIn')}
             </Button>
           </Link>
@@ -48,31 +54,30 @@ export default function LoginPage() {
           <div className="w-full lg:w-1/2 space-y-8 text-center lg:text-left">
             {/* Logo - Visible on mobile only */}
             <div className="flex justify-center md:hidden mb-8">
-              <Image
-                src="/assets/cfm_logo_light.webp"
-                alt="CFM Logo"
-                width={200}
-                height={80}
-                className="object-contain"
-                priority
-              />
+              <div className="relative w-[200px] h-[80px]">
+                <Image
+                  src="/assets/cfm_logo_light.webp"
+                  alt="CFM Logo"
+                  fill
+                  sizes="200px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
 
             {/* Mobile Navigation Buttons */}
             <div className="flex flex-col gap-3 md:hidden mb-8 max-w-md mx-auto">
               <Link href={`/${locale}/signin`} className="w-full">
-                <Button className="w-full" size="lg">
+                <Button variant="default" className="w-full bg-green-600 hover:bg-green-700 text-white" size="lg">
                   {tAuth('signIn')}
                 </Button>
               </Link>
               <Link href={`/${locale}/signup`} className="w-full">
-                <Button variant="outline" className="w-full" size="lg">
+                <Button variant="default" className="w-full" size="lg">
                   {tAuth('signUp')}
                 </Button>
               </Link>
-              <div className="flex justify-center mt-2">
-                <LanguageSwitcher variant="inline" />
-              </div>
             </div>
 
             <div className="space-y-4">
@@ -93,6 +98,7 @@ export default function LoginPage() {
                 width={800}
                 height={400}
                 className="rounded-lg shadow-lg object-cover w-full"
+                style={{ height: 'auto' }}
                 priority
               />
             </div>
