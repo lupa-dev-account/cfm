@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import Image from "next/image";
-import { ChevronLeft, X, ExternalLink, Twitter, Linkedin, Instagram } from "lucide-react";
+import { ChevronLeft, X, Copy, Twitter, Linkedin, Instagram } from "lucide-react";
 import { FaWhatsapp, FaMeta } from "react-icons/fa6";
 import { useTranslations, useLocale } from "next-intl";
 import { translateTitle } from "@/lib/utils/title-translator";
@@ -336,7 +336,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 className="p-2 hover:bg-gray-200 rounded transition-colors"
                 title={t("copyLink")}
               >
-                <ExternalLink className="h-4 w-4 text-gray-600" />
+                <Copy className="h-4 w-4 text-gray-600" />
               </button>
             </div>
             <button
@@ -348,7 +348,8 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
           </div>
 
           {/* Social Channels */}
-          {(company?.facebook_url ||
+          {/* TODO: Uncomment this section when ready to use in the future */}
+          {/* {(company?.facebook_url ||
             company?.linkedin_url ||
             company?.instagram_url ||
             contactLinks.phone) && (
@@ -395,7 +396,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
                 )}
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </DialogContent>
     </Dialog>
