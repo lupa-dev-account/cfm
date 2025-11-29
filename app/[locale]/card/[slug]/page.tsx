@@ -613,7 +613,7 @@ export default function EmployeeCardPage() {
   return (
     <div className="min-h-screen bg-gray-100" key={`card-${locale}`}>
       {/* Centered container with max-width */}
-      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-lg overflow-hidden">
+      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-t-lg rounded-b-none overflow-hidden">
         {/* Header Section with Company Banner */}
         <header className="relative h-[240px] border-b-2 border-green-800 overflow-hidden">
           {company?.banner_url && (
@@ -711,20 +711,6 @@ export default function EmployeeCardPage() {
 
 
   <div className="space-y-3">
-    {/* WhatsApp - always show if provided */}
-    {contactLinks.whatsapp && (
-      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
-        {formatPhoneNumber(contactLinks.whatsapp)}
-      </ContactItem>
-    )}
-
-    {/* Second WhatsApp - always show if provided */}
-    {contactLinks.whatsapp2 && (
-      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp2.replace(/[^\d]/g, "")}`}>
-        {formatPhoneNumber(contactLinks.whatsapp2)}
-      </ContactItem>
-    )}
-
     {/* Primary Phone - mandatory field */}
     <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}>
       {formatPhoneNumber(contactLinks.phone)}
@@ -734,6 +720,20 @@ export default function EmployeeCardPage() {
     {contactLinks.phone2 && (
       <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone2.replace(/\s/g, "")}`}>
         {formatPhoneNumber(contactLinks.phone2)}
+      </ContactItem>
+    )}
+
+        {/* WhatsApp - always show if provided */}
+        {contactLinks.whatsapp && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp)}
+      </ContactItem>
+    )}
+
+    {/* Second WhatsApp - always show if provided */}
+    {contactLinks.whatsapp2 && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp2.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp2)}
       </ContactItem>
     )}
 
@@ -908,34 +908,52 @@ export default function EmployeeCardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-800 text-white py-4 rounded-t-lg" key={`footer-${locale}`}>
-          <div className="px-4 text-center text-xs">
-            © {new Date().getFullYear()} {company?.name || t('company')}
-            {(() => {
-              // Get translated footer text if available
-              const footerTextTranslations = (company as any)?.footer_text_translations;
-              let footerText = '';
-              
-              // Debug in development
-              if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
-                console.log('Footer translations:', footerTextTranslations);
-                console.log('Current locale:', locale);
-              }
-              
-              if (footerTextTranslations && typeof footerTextTranslations === 'object') {
-                // Try current locale, then lowercase version, then English, then fallback to plain footer_text
-                footerText = footerTextTranslations[locale] 
-                  || footerTextTranslations[locale.toLowerCase()] 
-                  || footerTextTranslations['en'] 
-                  || company?.footer_text 
-                  || '';
-              } else {
-                // No translations available, use plain footer_text
-                footerText = company?.footer_text || '';
-              }
-              
-              return footerText ? ` - ${footerText}` : '';
-            })()}. {t('allRightsReserved')}.
+        <footer className="bg-green-800 text-white py-2 rounded-t-lg border-b-0" key={`footer-${locale}`}>
+          <div className="px-4 text-center text-xs space-y-3">
+            <div>
+              © {new Date().getFullYear()} {company?.name || t('company')}
+              {(() => {
+                // Get translated footer text if available
+                const footerTextTranslations = (company as any)?.footer_text_translations;
+                let footerText = '';
+                
+                // Debug in development
+                if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
+                  console.log('Footer translations:', footerTextTranslations);
+                  console.log('Current locale:', locale);
+                }
+                
+                if (footerTextTranslations && typeof footerTextTranslations === 'object') {
+                  // Try current locale, then lowercase version, then English, then fallback to plain footer_text
+                  footerText = footerTextTranslations[locale] 
+                    || footerTextTranslations[locale.toLowerCase()] 
+                    || footerTextTranslations['en'] 
+                    || company?.footer_text 
+                    || '';
+                } else {
+                  // No translations available, use plain footer_text
+                  footerText = company?.footer_text || '';
+                }
+                
+                return footerText ? ` - ${footerText}` : '';
+              })()}. {t('allRightsReserved')}.
+            </div>
+            
+            {/* Horizontal divider */}
+            <div className="border-t border-black"></div>
+            
+            {/* Design & Implementation by Lupa */}
+            <div className="text-white">
+              {t('designAndImplementationBy')}{' '}
+              <a
+                href="https://www.lupa-designs.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-black underline hover:text-gray-800"
+              >
+                Lupa
+              </a>
+            </div>
           </div>
         </footer>
       </div>
