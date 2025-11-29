@@ -340,6 +340,9 @@ export default function EmployeeCardPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const supabase = createClient();
+  
+  // Check if current locale is RTL
+  const isRTL = ['ar', 'he', 'fa', 'ur'].includes(locale);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -410,7 +413,7 @@ export default function EmployeeCardPage() {
           const [companyResult, servicesResult] = await Promise.all([
             supabase
               .from("companies")
-              .select("id, name, slug, subscription_plan, subscription_status, description, description_translations, banner_url, logo_url, footer_text, website_url, linkedin_url, facebook_url, instagram_url, business_hours, created_at")
+              .select("id, name, slug, subscription_plan, subscription_status, description, description_translations, banner_url, logo_url, footer_text, footer_text_translations, website_url, linkedin_url, facebook_url, instagram_url, business_hours, created_at")
               .eq("id", companyId)
               .single(),
             supabase
@@ -598,6 +601,12 @@ export default function EmployeeCardPage() {
     setServiceIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
   
+  // For RTL, reverse the transform direction
+  const getTransform = () => {
+    const translateValue = serviceIndex * 100;
+    return isRTL ? `translateX(${translateValue}%)` : `translateX(-${translateValue}%)`;
+  };
+  
 
   
 
@@ -751,9 +760,9 @@ export default function EmployeeCardPage() {
     <div className="relative">
       {slides.length > 1 && (
         <button
-          onClick={prevService}
+          onClick={isRTL ? nextService : prevService}
           className={`${carouselButtonBase} -left-3`}
-          aria-label={t('previousService')}
+          aria-label={isRTL ? t('nextService') : t('previousService')}
         >
           <TbChevronLeft className="h-5 w-5 text-green-600" />
         </button>
@@ -763,7 +772,7 @@ export default function EmployeeCardPage() {
       <div className="overflow-hidden">
         <div
           className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${serviceIndex * 100}%)` }}
+          style={{ transform: getTransform() }}
         >
           {slides.map((slide, idx) => (
             <div key={idx} className="min-w-full px-1">
@@ -790,9 +799,9 @@ export default function EmployeeCardPage() {
 
       {slides.length > 1 && (
         <button
-          onClick={nextService}
+          onClick={isRTL ? prevService : nextService}
           className={`${carouselButtonBase} -right-3`}
-          aria-label={t('nextService')}
+          aria-label={isRTL ? t('previousService') : t('nextService')}
         >
           <TbChevronRight className="h-5 w-5 text-green-600" />
         </button>
@@ -899,10 +908,34 @@ export default function EmployeeCardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-800 text-white py-4 rounded-t-lg">
+        <footer className="bg-green-800 text-white py-4 rounded-t-lg" key={`footer-${locale}`}>
           <div className="px-4 text-center text-xs">
-            © {new Date().getFullYear()} {company?.name || "Company"}
-            {company?.footer_text && ` - ${company.footer_text}`}. {t('allRightsReserved')}.
+            © {new Date().getFullYear()} {company?.name || t('company')}
+            {(() => {
+              // Get translated footer text if available
+              const footerTextTranslations = (company as any)?.footer_text_translations;
+              let footerText = '';
+              
+              // Debug in development
+              if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
+                console.log('Footer translations:', footerTextTranslations);
+                console.log('Current locale:', locale);
+              }
+              
+              if (footerTextTranslations && typeof footerTextTranslations === 'object') {
+                // Try current locale, then lowercase version, then English, then fallback to plain footer_text
+                footerText = footerTextTranslations[locale] 
+                  || footerTextTranslations[locale.toLowerCase()] 
+                  || footerTextTranslations['en'] 
+                  || company?.footer_text 
+                  || '';
+              } else {
+                // No translations available, use plain footer_text
+                footerText = company?.footer_text || '';
+              }
+              
+              return footerText ? ` - ${footerText}` : '';
+            })()}. {t('allRightsReserved')}.
           </div>
         </footer>
       </div>
