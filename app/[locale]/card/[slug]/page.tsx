@@ -340,6 +340,9 @@ export default function EmployeeCardPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const supabase = createClient();
+  
+  // Check if current locale is RTL
+  const isRTL = ['ar', 'he', 'fa', 'ur'].includes(locale);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -598,6 +601,12 @@ export default function EmployeeCardPage() {
     setServiceIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
   
+  // For RTL, reverse the transform direction
+  const getTransform = () => {
+    const translateValue = serviceIndex * 100;
+    return isRTL ? `translateX(${translateValue}%)` : `translateX(-${translateValue}%)`;
+  };
+  
 
   
 
@@ -751,9 +760,9 @@ export default function EmployeeCardPage() {
     <div className="relative">
       {slides.length > 1 && (
         <button
-          onClick={prevService}
+          onClick={isRTL ? nextService : prevService}
           className={`${carouselButtonBase} -left-3`}
-          aria-label={t('previousService')}
+          aria-label={isRTL ? t('nextService') : t('previousService')}
         >
           <TbChevronLeft className="h-5 w-5 text-green-600" />
         </button>
@@ -763,7 +772,7 @@ export default function EmployeeCardPage() {
       <div className="overflow-hidden">
         <div
           className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${serviceIndex * 100}%)` }}
+          style={{ transform: getTransform() }}
         >
           {slides.map((slide, idx) => (
             <div key={idx} className="min-w-full px-1">
@@ -790,9 +799,9 @@ export default function EmployeeCardPage() {
 
       {slides.length > 1 && (
         <button
-          onClick={nextService}
+          onClick={isRTL ? prevService : nextService}
           className={`${carouselButtonBase} -right-3`}
-          aria-label={t('nextService')}
+          aria-label={isRTL ? t('previousService') : t('nextService')}
         >
           <TbChevronRight className="h-5 w-5 text-green-600" />
         </button>
@@ -901,7 +910,7 @@ export default function EmployeeCardPage() {
         {/* Footer */}
         <footer className="bg-green-800 text-white py-4 rounded-t-lg">
           <div className="px-4 text-center text-xs">
-            © {new Date().getFullYear()} {company?.name || "Company"}
+            © {new Date().getFullYear()} {company?.name || t('company')}
             {company?.footer_text && ` - ${company.footer_text}`}. {t('allRightsReserved')}.
           </div>
         </footer>
