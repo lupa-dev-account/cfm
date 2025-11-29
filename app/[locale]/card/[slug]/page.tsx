@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
@@ -123,7 +123,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
   }
   
   return (
-    <div className="w-full h-full rounded-xl bg-gray-100 border border-gray-200 p-4 md:p-5 flex flex-col items-center text-center">
+    <div className="w-full min-h-[280px] rounded-xl bg-gray-100 border border-gray-200 p-4 md:p-5 flex flex-col items-center text-center">
       {service.icon_name && (
         <>
           {service.icon_name.startsWith("http") ? (
@@ -146,24 +146,26 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
         </>
       )}
 
-      <h3 className="font-semibold text-black mb-1 text-base md:text-lg" key={`title-${currentLocale}`}>
+      <h3 className="font-semibold text-black mb-1 text-base md:text-lg min-h-[28px] flex items-center justify-center" key={`title-${currentLocale}`}>
         {title}
       </h3>
 
-      <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-3" key={`desc-${currentLocale}`}>
+      <p className="text-xs md:text-sm text-gray-600 mb-3 line-clamp-3 min-h-[60px] flex items-center justify-center" key={`desc-${currentLocale}`}>
         {description}
       </p>
 
-      {websiteUrl && (
-        <a
-          href={websiteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-auto bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
-        >
-          {t('learnMore')}
-        </a>
-      )}
+      <div className="mt-auto min-h-[32px] flex items-center justify-center">
+        {websiteUrl && (
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
+          >
+            {t('learnMore')}
+          </a>
+        )}
+      </div>
     </div>
   );
 };
@@ -336,9 +338,11 @@ export default function EmployeeCardPage() {
   const [card, setCard] = useState<EmployeeWithCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [serviceIndex, setServiceIndex] = useState(0);
+  const [serviceIndex, setServiceIndex] = useState(1); // Start at 1 because index 0 will be a clone
   const [isMobile, setIsMobile] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const serviceIndexRef = useRef(1);
   const supabase = createClient();
   
   // Check if current locale is RTL
@@ -471,32 +475,93 @@ export default function EmployeeCardPage() {
     // This effect ensures the component re-renders when locale changes
   }, [locale]);
 
-  // Auto-rotate services carousel
+  // Update ref when serviceIndex changes
+  useEffect(() => {
+    serviceIndexRef.current = serviceIndex;
+  }, [serviceIndex]);
+
+  // Reset service index when slides change
+  useEffect(() => {
+    if (!card?.services) return;
+    const itemsPerSlide = 1; // Always show one card per slide
+    const slideCount = Math.ceil(card.services.length / itemsPerSlide);
+    if (slideCount > 1) {
+      const initialIndex = 1; // Start at first real slide (index 0 is clone)
+      setServiceIndex(initialIndex);
+      serviceIndexRef.current = initialIndex;
+    } else {
+      const initialIndex = 0; // Only one slide, start at index 0
+      setServiceIndex(initialIndex);
+      serviceIndexRef.current = initialIndex;
+    }
+  }, [card?.services]);
+
+  // Handle seamless infinite loop transition
+  useEffect(() => {
+    if (!carouselRef.current || !card?.services) return;
+    
+    const itemsPerSlide = 1;
+    const slideCount = Math.ceil(card.services.length / itemsPerSlide);
+    if (slideCount <= 1) return;
+
+    const carousel = carouselRef.current;
+    const totalSlides = slideCount + 2; // +2 for cloned slides
+
+    const handleTransitionEnd = (e: Event) => {
+      // Only handle transform transitions
+      const transitionEvent = e as TransitionEvent;
+      if (transitionEvent.propertyName !== 'transform') return;
+      
+      const currentIndex = serviceIndexRef.current;
+      // Check if we're on a cloned slide and reset to real slide
+      if (currentIndex >= totalSlides - 1) {
+        // We're on the cloned first slide, instantly jump to real first slide
+        carousel.style.transition = 'none';
+        const newIndex = 1;
+        setServiceIndex(newIndex);
+        serviceIndexRef.current = newIndex;
+        // Force reflow to apply the instant change
+        void carousel.offsetWidth;
+        // Re-enable transitions
+        carousel.style.transition = '';
+      } else if (currentIndex <= 0) {
+        // We're on the cloned last slide, instantly jump to real last slide
+        carousel.style.transition = 'none';
+        const newIndex = slideCount; // Last real slide index
+        setServiceIndex(newIndex);
+        serviceIndexRef.current = newIndex;
+        // Force reflow to apply the instant change
+        void carousel.offsetWidth;
+        // Re-enable transitions
+        carousel.style.transition = '';
+      }
+    };
+
+    carousel.addEventListener('transitionend', handleTransitionEnd);
+    return () => carousel.removeEventListener('transitionend', handleTransitionEnd);
+  }, [card?.services]);
+
+  // Auto-rotate services carousel with infinite loop
   useEffect(() => {
     if (!card?.services) return;
 
     const services = card.services;
-    const itemsPerSlide = isMobile ? 1 : 2;
+    const itemsPerSlide = 1; // Always show one card per slide
     const slideCount = Math.ceil(services.length / itemsPerSlide);
 
     if (slideCount <= 1) return;
 
     const id = setInterval(() => {
-      setServiceIndex((prev) => (prev + 1) % slideCount);
-    }, 5000);
+      setServiceIndex((prev) => {
+        const totalSlides = slideCount + 2; // +2 for cloned slides at start and end
+        const newIndex = (prev + 1) % totalSlides;
+        serviceIndexRef.current = newIndex;
+        return newIndex;
+      });
+    }, 2000); // 2 seconds per slide
 
     return () => clearInterval(id);
-  }, [card?.services, isMobile]);
-
-  // Reset slide index if it's out of range when services/screen size changes
-  useEffect(() => {
-    if (!card?.services) return;
-    const itemsPerSlide = isMobile ? 1 : 2;
-    const slideCount = Math.ceil(card.services.length / itemsPerSlide);
-    if (serviceIndex >= slideCount) {
-      setServiceIndex(0);
-    }
-  }, [card?.services, isMobile, serviceIndex]);
+  }, [card?.services]);
 
   const handleDownloadVCard = async () => {
     if (!card) return;
@@ -586,19 +651,47 @@ export default function EmployeeCardPage() {
   const businessHours = company?.business_hours || card.business_hours;
   const services = card.services || [];
 
-  // Build slides based on screen size
-  const itemsPerSlide = isMobile ? 1 : 2;
-  const slides: CompanyService[][] = [];
+  // Build slides with cloned slides for infinite loop (always 1 card per slide)
+  const itemsPerSlide = 1;
+  const realSlides: CompanyService[][] = [];
   for (let i = 0; i < services.length; i += itemsPerSlide) {
-    slides.push(services.slice(i, i + itemsPerSlide));
+    realSlides.push(services.slice(i, i + itemsPerSlide));
+  }
+
+  // Create infinite carousel by cloning first and last slides
+  const slides: CompanyService[][] = [];
+  if (realSlides.length > 1) {
+    // Add clone of last slide at the beginning
+    slides.push(realSlides[realSlides.length - 1]);
+    // Add all real slides
+    slides.push(...realSlides);
+    // Add clone of first slide at the end
+    slides.push(realSlides[0]);
+  } else {
+    // If only one slide, no need for cloning
+    slides.push(...realSlides);
   }
 
   const nextService = () => {
-    setServiceIndex((prev) => (prev + 1) % slides.length);
+    if (slides.length <= 1) return;
+    
+    setServiceIndex((prev) => {
+      const totalSlides = slides.length;
+      const newIndex = (prev + 1) % totalSlides;
+      serviceIndexRef.current = newIndex;
+      return newIndex;
+    });
   };
 
   const prevService = () => {
-    setServiceIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    if (slides.length <= 1) return;
+    
+    setServiceIndex((prev) => {
+      const totalSlides = slides.length;
+      const newIndex = (prev - 1 + totalSlides) % totalSlides;
+      serviceIndexRef.current = newIndex;
+      return newIndex;
+    });
   };
   
   // For RTL, reverse the transform direction
@@ -613,7 +706,7 @@ export default function EmployeeCardPage() {
   return (
     <div className="min-h-screen bg-gray-100" key={`card-${locale}`}>
       {/* Centered container with max-width */}
-      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-lg overflow-hidden">
+      <div className="max-w-md mx-auto bg-white shadow-xl min-h-screen rounded-t-lg rounded-b-none overflow-hidden">
         {/* Header Section with Company Banner */}
         <header className="relative h-[240px] border-b-2 border-green-800 overflow-hidden">
           {company?.banner_url && (
@@ -711,20 +804,6 @@ export default function EmployeeCardPage() {
 
 
   <div className="space-y-3">
-    {/* WhatsApp - always show if provided */}
-    {contactLinks.whatsapp && (
-      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
-        {formatPhoneNumber(contactLinks.whatsapp)}
-      </ContactItem>
-    )}
-
-    {/* Second WhatsApp - always show if provided */}
-    {contactLinks.whatsapp2 && (
-      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp2.replace(/[^\d]/g, "")}`}>
-        {formatPhoneNumber(contactLinks.whatsapp2)}
-      </ContactItem>
-    )}
-
     {/* Primary Phone - mandatory field */}
     <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone.replace(/\s/g, "")}`}>
       {formatPhoneNumber(contactLinks.phone)}
@@ -734,6 +813,20 @@ export default function EmployeeCardPage() {
     {contactLinks.phone2 && (
       <ContactItem icon={MdPhone} href={`tel:${contactLinks.phone2.replace(/\s/g, "")}`}>
         {formatPhoneNumber(contactLinks.phone2)}
+      </ContactItem>
+    )}
+
+        {/* WhatsApp - always show if provided */}
+        {contactLinks.whatsapp && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp)}
+      </ContactItem>
+    )}
+
+    {/* Second WhatsApp - always show if provided */}
+    {contactLinks.whatsapp2 && (
+      <ContactItem icon={FaWhatsapp} href={`https://wa.me/${contactLinks.whatsapp2.replace(/[^\d]/g, "")}`}>
+        {formatPhoneNumber(contactLinks.whatsapp2)}
       </ContactItem>
     )}
 
@@ -771,18 +864,13 @@ export default function EmployeeCardPage() {
       {/* Slider viewport */}
       <div className="overflow-hidden">
         <div
+          ref={carouselRef}
           className="flex transition-transform duration-700 ease-in-out"
           style={{ transform: getTransform() }}
         >
           {slides.map((slide, idx) => (
             <div key={idx} className="min-w-full px-1">
-            <div
-              className={
-                slide.length === 1 && !isMobile
-                  ? "grid grid-cols-1 place-items-center gap-3 items-stretch"
-                  : "grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch"
-              }
-            >
+            <div className="grid grid-cols-1 place-items-center gap-3 items-stretch">
               {slide.map((service) => (
                 <ServiceCard
                   key={`service-${service.id}-${locale}`}
@@ -908,34 +996,54 @@ export default function EmployeeCardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-800 text-white py-4 rounded-t-lg" key={`footer-${locale}`}>
-          <div className="px-4 text-center text-xs">
-            © {new Date().getFullYear()} {company?.name || t('company')}
-            {(() => {
-              // Get translated footer text if available
-              const footerTextTranslations = (company as any)?.footer_text_translations;
-              let footerText = '';
-              
-              // Debug in development
-              if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
-                console.log('Footer translations:', footerTextTranslations);
-                console.log('Current locale:', locale);
-              }
-              
-              if (footerTextTranslations && typeof footerTextTranslations === 'object') {
-                // Try current locale, then lowercase version, then English, then fallback to plain footer_text
-                footerText = footerTextTranslations[locale] 
-                  || footerTextTranslations[locale.toLowerCase()] 
-                  || footerTextTranslations['en'] 
-                  || company?.footer_text 
-                  || '';
-              } else {
-                // No translations available, use plain footer_text
-                footerText = company?.footer_text || '';
-              }
-              
-              return footerText ? ` - ${footerText}` : '';
-            })()}. {t('allRightsReserved')}.
+        <footer className="bg-green-800 text-white py-2 rounded-t-lg border-b-0" key={`footer-${locale}`}>
+          <div className="px-4 text-center text-xs space-y-3">
+            <div>
+              © {new Date().getFullYear()} {company?.name || t('company')}
+              {(() => {
+                // Get translated footer text if available
+                const footerTextTranslations = (company as any)?.footer_text_translations;
+                let footerText = '';
+                
+                // Debug in development
+                if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
+                  console.log('Footer translations:', footerTextTranslations);
+                  console.log('Current locale:', locale);
+                }
+                
+                if (footerTextTranslations && typeof footerTextTranslations === 'object') {
+                  // Try current locale, then lowercase version, then English, then fallback to plain footer_text
+                  footerText = footerTextTranslations[locale] 
+                    || footerTextTranslations[locale.toLowerCase()] 
+                    || footerTextTranslations['en'] 
+                    || company?.footer_text 
+                    || '';
+                } else {
+                  // No translations available, use plain footer_text
+                  footerText = company?.footer_text || '';
+                }
+                
+                return footerText ? ` - ${footerText}` : '';
+              })()}. {t('allRightsReserved')}.
+            </div>
+            
+            {/* Horizontal divider */}
+            <div className="flex justify-center">
+              <div className="border-t border-white w-20"></div>
+            </div>
+            
+            {/* Design & Implementation by Lupa */}
+            <div className="text-white text-[10px]">
+              {t('designAndImplementationBy')}{' '}
+              <a
+                href="https://www.lupa-designs.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white underline hover:text-black"
+              >
+                Lupa
+              </a>
+            </div>
           </div>
         </footer>
       </div>
