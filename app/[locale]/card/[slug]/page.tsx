@@ -413,7 +413,7 @@ export default function EmployeeCardPage() {
           const [companyResult, servicesResult] = await Promise.all([
             supabase
               .from("companies")
-              .select("id, name, slug, subscription_plan, subscription_status, description, description_translations, banner_url, logo_url, footer_text, website_url, linkedin_url, facebook_url, instagram_url, business_hours, created_at")
+              .select("id, name, slug, subscription_plan, subscription_status, description, description_translations, banner_url, logo_url, footer_text, footer_text_translations, website_url, linkedin_url, facebook_url, instagram_url, business_hours, created_at")
               .eq("id", companyId)
               .single(),
             supabase
@@ -908,10 +908,34 @@ export default function EmployeeCardPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-green-800 text-white py-4 rounded-t-lg">
+        <footer className="bg-green-800 text-white py-4 rounded-t-lg" key={`footer-${locale}`}>
           <div className="px-4 text-center text-xs">
             © {new Date().getFullYear()} {company?.name || t('company')}
-            {company?.footer_text && ` - ${company.footer_text}`}. {t('allRightsReserved')}.
+            {(() => {
+              // Get translated footer text if available
+              const footerTextTranslations = (company as any)?.footer_text_translations;
+              let footerText = '';
+              
+              // Debug in development
+              if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
+                console.log('Footer translations:', footerTextTranslations);
+                console.log('Current locale:', locale);
+              }
+              
+              if (footerTextTranslations && typeof footerTextTranslations === 'object') {
+                // Try current locale, then lowercase version, then English, then fallback to plain footer_text
+                footerText = footerTextTranslations[locale] 
+                  || footerTextTranslations[locale.toLowerCase()] 
+                  || footerTextTranslations['en'] 
+                  || company?.footer_text 
+                  || '';
+              } else {
+                // No translations available, use plain footer_text
+                footerText = company?.footer_text || '';
+              }
+              
+              return footerText ? ` - ${footerText}` : '';
+            })()}. {t('allRightsReserved')}.
           </div>
         </footer>
       </div>
