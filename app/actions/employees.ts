@@ -46,6 +46,11 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 
 /**
+ * Default profile picture URL when no photo is provided
+ */
+const DEFAULT_PROFILE_PICTURE_URL = 'https://niivkjrhszjuyboqrirj.supabase.co/storage/v1/object/public/company-logos/thumb_for_the_home_screen.jpg';
+
+/**
  * Magic bytes (file signatures) for image validation
  */
 const IMAGE_SIGNATURES: Record<string, number[][]> = {
@@ -203,17 +208,17 @@ async function getCurrentUserCompanyId(): Promise<string | null> {
     return null;
   }
 
-  const { data: userData } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from("users")
     .select("company_id")
     .eq("id", user.id)
     .single();
 
-  if (!userData) {
+  if (userError || !userData) {
     return null;
   }
 
-  return userData.company_id || null;
+  return (userData as { company_id: string | null }).company_id || null;
 }
 
 /**
@@ -247,6 +252,11 @@ export async function createEmployeeAction(
     let photoUrl = employeeData.photoUrl || null;
     if (employeeData.photoFile) {
       photoUrl = await uploadEmployeePhoto(employeeData.photoFile, employeeId);
+    }
+    
+    // Use default profile picture if no photo provided
+    if (!photoUrl) {
+      photoUrl = DEFAULT_PROFILE_PICTURE_URL;
     }
 
     // Store name, title, title_translations, and company_id in theme JSON
@@ -339,6 +349,11 @@ export async function updateEmployeeAction(
     let photoUrl = employeeData.photoUrl ?? (existingCard as any).photo_url;
     if (employeeData.photoFile) {
       photoUrl = await uploadEmployeePhoto(employeeData.photoFile, employeeId);
+    }
+    
+    // Use default profile picture if no photo provided (for new employees or when photo is removed)
+    if (!photoUrl) {
+      photoUrl = DEFAULT_PROFILE_PICTURE_URL;
     }
 
     // Update theme with name/title/title_translations if provided
