@@ -396,7 +396,7 @@ export async function updateEmployeeAction(
 
     const { data, error } = await supabase
       .from("employee_cards")
-      .update(updateData)
+      .update(updateData as any)
       .eq("employee_id", employeeId)
       .select()
       .single();
