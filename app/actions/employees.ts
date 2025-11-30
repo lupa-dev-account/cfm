@@ -209,7 +209,11 @@ async function getCurrentUserCompanyId(): Promise<string | null> {
     .eq("id", user.id)
     .single();
 
-  return userData?.company_id || null;
+  if (!userData) {
+    return null;
+  }
+
+  return userData.company_id || null;
 }
 
 /**
