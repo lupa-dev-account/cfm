@@ -394,9 +394,8 @@ export async function updateEmployeeAction(
     }
     updateData.theme = updatedTheme;
 
-    // @ts-expect-error - Supabase type inference issue with dynamic update objects
-    const { data, error } = await supabase
-      .from("employee_cards")
+    const { data, error } = await (supabase
+      .from("employee_cards") as any)
       .update(updateData)
       .eq("employee_id", employeeId)
       .select()
@@ -503,9 +502,9 @@ export async function toggleEmployeeStatusAction(
       }
     }
 
-    const { data, error } = await supabase
-      .from("employee_cards")
-      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    const { data, error } = await (supabase
+      .from("employee_cards") as any)
+      .update({ is_active: isActive, updated_at: new Date().toISOString() } as any)
       .eq("employee_id", employeeId)
       .select()
       .single();
