@@ -228,7 +228,7 @@ export function ShareModal({ open, onOpenChange, card }: ShareModalProps) {
       } catch (error) {
         // If image fetch fails, we'll fall back to URL method in generateVCard
         if (process.env.NODE_ENV === 'development') {
-          console.warn('Failed to fetch photo for vCard, falling back to URL:', error);
+          // Silently fall back to URL method - no need to log
         }
       }
     }

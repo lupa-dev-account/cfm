@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/ui/loading";
 import { EmployeeForm } from "@/app/components/dashboard/employee-form";
 import { EmployeeList } from "@/app/components/dashboard/employee-list";
-import { getEmployeesByCompany } from "@/lib/services/employees";
+import { getEmployeesByCompanyAction } from "@/app/actions/employees";
 import type { EmployeeWithCard, EmployeeCard } from "@/lib/types";
 import { Plus, Users, Settings } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -19,7 +19,7 @@ export default function CompanyDashboard() {
   const t = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string; role: string; company_id: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<EmployeeWithCard[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState(false);
@@ -31,11 +31,11 @@ export default function CompanyDashboard() {
     async function checkAuth() {
       const currentUser = await getCurrentUser();
       if (!currentUser) {
-        router.push("/signin");
+        router.push(`/${locale}/signin`);
         return;
       }
       if (currentUser.role !== "company_admin") {
-        router.push("/signin");
+        router.push(`/${locale}/signin`);
         return;
       }
       setUser(currentUser);
@@ -55,8 +55,15 @@ export default function CompanyDashboard() {
     if (!user?.company_id) return;
     setEmployeesLoading(true);
     try {
-      const data = await getEmployeesByCompany(user.company_id);
-      setEmployees(data);
+      const result = await getEmployeesByCompanyAction(user.company_id);
+      if (!result.success) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to load employees:", result.error);
+        }
+        alert(`${t('failedToLoadEmployees')}: ${result.error}`);
+        return;
+      }
+      setEmployees(result.data || []);
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
         console.error("Failed to load employees:", error);

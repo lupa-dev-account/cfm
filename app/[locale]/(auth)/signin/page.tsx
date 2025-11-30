@@ -32,7 +32,7 @@ export default function SignInPage() {
 
   const signInSchema = z.object({
     email: z.string().email(t('invalidEmail')),
-    password: z.string().min(6, t('passwordMinLength')),
+    password: z.string().min(1, 'Password is required'),
   });
 
   type SignInFormData = z.infer<typeof signInSchema>;
@@ -72,7 +72,8 @@ export default function SignInPage() {
       });
 
       if (authError) {
-        setError(authError.message || "Invalid email or password");
+        // Use generic error message to prevent email enumeration
+        setError("Invalid email or password");
         setIsLoading(false);
         return;
       }
@@ -98,22 +99,8 @@ export default function SignInPage() {
           console.error("Auth User Email:", authData.user.email);
         }
         
-        // Check if user exists by email
-        const { data: emailCheck } = await supabase
-          .from("users")
-          .select("id, email, role")
-          .eq("email", authData.user.email!)
-          .single();
-
-        if (emailCheck) {
-          setError(
-            `UUID mismatch detected! Auth ID: ${authData.user.id}, Database ID: ${(emailCheck as any).id}. Please update the database user ID to match the Auth ID. See browser console for details.`
-          );
-        } else {
-          setError(
-            `User not found in database. Auth User ID: ${authData.user.id}, Email: ${authData.user.email}. Please create the user in the database. See browser console for details.`
-          );
-        }
+        // Use generic error message to prevent information disclosure
+        setError("Authentication failed. Please try again.");
         setIsLoading(false);
         return;
       }
@@ -122,16 +109,15 @@ export default function SignInPage() {
         if (process.env.NODE_ENV === 'development') {
           console.error("No user data found for ID:", authData.user.id);
         }
-        setError(
-          `User not found in database. Auth User ID: ${authData.user.id}, Email: ${authData.user.email}. Please create the user in the database.`
-        );
+        // Use generic error message to prevent information disclosure
+        setError("Authentication failed. Please try again.");
         setIsLoading(false);
         return;
       }
 
       // Redirect based on role
       const redirectPath = await getRedirectPath((userData as any).role);
-      router.push(redirectPath);
+      router.push(`/${locale}${redirectPath}`);
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
@@ -140,9 +126,7 @@ export default function SignInPage() {
 
   const handleSocialLogin = (provider: string) => {
     // Placeholder for social login
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Sign in with ${provider}`);
-    }
+    // TODO: Implement social login
   };
 
   return (

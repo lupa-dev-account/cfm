@@ -1,89 +1,95 @@
-import { describe, it, expect } from '@jest/globals';
-
 /**
  * XSS Prevention Tests
- *
- * Tests to ensure URL sanitization and XSS attack prevention
+ * 
+ * Tests for URL sanitization and XSS prevention
  */
 
+import { sanitizeUrl, isUrlSafe } from '@/lib/utils/url-sanitizer';
+import { escapeHtml, sanitizeText } from '@/lib/utils/sanitize';
+
 describe('XSS Prevention', () => {
-  /**
-   * Sanitize URLs to prevent javascript: and data: protocol attacks
-   */
-  function sanitizeUrl(url: string): string {
-    if (!url) return '';
-    const trimmed = url.trim().toLowerCase();
-
-    // Block dangerous protocols
-    const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
-    for (const protocol of dangerousProtocols) {
-      if (trimmed.startsWith(protocol)) {
-        return '';
-      }
-    }
-
-    return url.trim();
-  }
-
   describe('URL Sanitization', () => {
-    it('should block javascript: protocol', () => {
-      expect(sanitizeUrl('javascript:alert("XSS")')).toBe('');
-      expect(sanitizeUrl('JAVASCRIPT:alert("XSS")')).toBe('');
+    it('should block javascript: URLs', () => {
+      const maliciousUrl = 'javascript:alert("XSS")';
+      expect(sanitizeUrl(maliciousUrl)).toBe('');
+      expect(isUrlSafe(maliciousUrl)).toBe(false);
     });
 
-    it('should block data: protocol', () => {
-      expect(sanitizeUrl('data:text/html,<script>alert("XSS")</script>')).toBe('');
+    it('should block data: URLs', () => {
+      const maliciousUrl = 'data:text/html,<script>alert("XSS")</script>';
+      expect(sanitizeUrl(maliciousUrl)).toBe('');
+      expect(isUrlSafe(maliciousUrl)).toBe(false);
     });
 
-    it('should block vbscript: protocol', () => {
-      expect(sanitizeUrl('vbscript:msgbox("XSS")')).toBe('');
-    });
-
-    it('should block file: protocol', () => {
-      expect(sanitizeUrl('file:///etc/passwd')).toBe('');
+    it('should block vbscript: URLs', () => {
+      const maliciousUrl = 'vbscript:msgbox("XSS")';
+      expect(sanitizeUrl(maliciousUrl)).toBe('');
+      expect(isUrlSafe(maliciousUrl)).toBe(false);
     });
 
     it('should allow valid HTTPS URLs', () => {
-      const validUrl = 'https://www.cfm.co.mz';
+      const validUrl = 'https://example.com';
       expect(sanitizeUrl(validUrl)).toBe(validUrl);
+      expect(isUrlSafe(validUrl)).toBe(true);
     });
 
     it('should allow valid HTTP URLs', () => {
-      const validUrl = 'http://www.cfm.co.mz';
+      const validUrl = 'http://example.com';
       expect(sanitizeUrl(validUrl)).toBe(validUrl);
+      expect(isUrlSafe(validUrl)).toBe(true);
+    });
+
+    it('should allow mailto: URLs', () => {
+      const validUrl = 'mailto:test@example.com';
+      expect(sanitizeUrl(validUrl)).toBe(validUrl);
+      expect(isUrlSafe(validUrl)).toBe(true);
+    });
+
+    it('should allow tel: URLs', () => {
+      const validUrl = 'tel:+1234567890';
+      expect(sanitizeUrl(validUrl)).toBe(validUrl);
+      expect(isUrlSafe(validUrl)).toBe(true);
+    });
+
+    it('should add https:// to URLs without protocol', () => {
+      const url = 'example.com';
+      expect(sanitizeUrl(url)).toBe('https://example.com');
     });
 
     it('should handle empty strings', () => {
       expect(sanitizeUrl('')).toBe('');
-    });
-
-    it('should handle whitespace', () => {
-      expect(sanitizeUrl('  https://www.cfm.co.mz  ')).toBe('https://www.cfm.co.mz');
+      expect(sanitizeUrl(null)).toBe('');
+      expect(sanitizeUrl(undefined)).toBe('');
     });
   });
 
-  describe('HTML Entity Escaping', () => {
-    /**
-     * React automatically escapes HTML entities when rendering JSX
-     * This test documents expected behavior
-     */
-    it('should document that React escapes HTML by default', () => {
-      const maliciousString = '<script>alert("XSS")</script>';
-      // In React: {maliciousString} renders as text, not HTML
-      // This is safe by default in React
-      expect(maliciousString).toContain('<script>');
-      // Note: React will render this as escaped text: &lt;script&gt;...
+  describe('HTML Escaping', () => {
+    it('should escape HTML special characters', () => {
+      const input = '<script>alert("XSS")</script>';
+      const escaped = escapeHtml(input);
+      expect(escaped).not.toContain('<script>');
+      expect(escaped).toContain('&lt;script&gt;');
     });
-  });
 
-  describe('Email Validation for XSS', () => {
-    it('should validate email format prevents script injection', () => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    it('should escape ampersands', () => {
+      const input = 'A & B';
+      expect(escapeHtml(input)).toBe('A &amp; B');
+    });
 
-      // These should all fail email validation
-      expect(emailRegex.test('<script>@cfm.com')).toBe(false);
-      expect(emailRegex.test('alert("xss")@cfm.com')).toBe(false);
-      expect(emailRegex.test('test@<script>.com')).toBe(false);
+    it('should escape quotes', () => {
+      const input = 'He said "Hello"';
+      expect(escapeHtml(input)).toContain('&quot;');
+    });
+
+    it('should remove HTML tags from text', () => {
+      const input = '<p>Hello <strong>World</strong></p>';
+      expect(sanitizeText(input)).toBe('Hello World');
+    });
+
+    it('should handle empty strings', () => {
+      expect(escapeHtml('')).toBe('');
+      expect(escapeHtml(null)).toBe('');
+      expect(escapeHtml(undefined)).toBe('');
     });
   });
 });

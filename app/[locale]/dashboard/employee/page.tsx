@@ -12,7 +12,7 @@ import { Loading } from "@/components/ui/loading";
 export default function EmployeeDashboard() {
   const t = useTranslations('common');
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string; role: string; company_id: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 

@@ -27,14 +27,111 @@ export interface EmployeeWithCard extends EmployeeCard {
 }
 
 /**
+ * Allowed MIME types for image uploads
+ */
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
+
+/**
+ * Maximum file size: 5MB
+ */
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
+/**
+ * Magic bytes (file signatures) for image validation
+ * This validates the actual file content, not just the extension/MIME type
+ */
+const IMAGE_SIGNATURES: Record<string, number[][]> = {
+  'image/jpeg': [[0xFF, 0xD8, 0xFF]],
+  'image/png': [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
+  'image/gif': [[0x47, 0x49, 0x46, 0x38, 0x37, 0x61], [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]], // GIF87a or GIF89a
+  'image/webp': [[0x52, 0x49, 0x46, 0x46]], // RIFF header (WebP starts with RIFF)
+};
+
+/**
+ * Validates file content by checking magic bytes
+ */
+async function validateFileContent(file: File, expectedMimeType: string): Promise<boolean> {
+  const signatures = IMAGE_SIGNATURES[expectedMimeType];
+  if (!signatures) {
+    return false;
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const arrayBuffer = reader.result as ArrayBuffer;
+      const bytes = new Uint8Array(arrayBuffer);
+      
+      // Check if file starts with any of the expected signatures
+      for (const signature of signatures) {
+        let matches = true;
+        for (let i = 0; i < signature.length; i++) {
+          if (bytes[i] !== signature[i]) {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          resolve(true);
+          return;
+        }
+      }
+      
+      resolve(false);
+    };
+    reader.onerror = () => resolve(false);
+    // Read first 8 bytes (enough for all image signatures)
+    reader.readAsArrayBuffer(file.slice(0, 8));
+  });
+}
+
+/**
  * Upload employee photo to Supabase Storage
+ * Includes comprehensive security validation
  */
 export async function uploadEmployeePhoto(
   file: File,
   employeeId: string
 ): Promise<string> {
+  // Validate file type by MIME type
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    throw new Error(
+      `Invalid file type. Only images (JPEG, PNG, WebP, GIF) are allowed. Received: ${file.type}`
+    );
+  }
+
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB. Received: ${(file.size / (1024 * 1024)).toFixed(2)}MB`
+    );
+  }
+
+  // Validate file content (magic bytes) to prevent file type spoofing
+  const isValidContent = await validateFileContent(file, file.type);
+  if (!isValidContent) {
+    throw new Error(
+      'Invalid file content. File does not match its declared type. Only image files are allowed.'
+    );
+  }
+
   const supabase = createClient();
-  const fileExt = file.name.split(".").pop();
+  
+  // Use MIME type to determine extension (more secure than trusting file.name)
+  const mimeToExt: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
+  const fileExt = mimeToExt[file.type] || 'jpg';
   const fileName = `${employeeId}/${Date.now()}.${fileExt}`;
   const bucketName = "employee-photos";
   const filePath = fileName;

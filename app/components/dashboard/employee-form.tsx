@@ -19,10 +19,10 @@ import {
 import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import {
-  createEmployee,
-  updateEmployee,
+  createEmployeeAction,
+  updateEmployeeAction,
   type EmployeeFormData as ServiceEmployeeFormData,
-} from "@/lib/services/employees";
+} from "@/app/actions/employees";
 import type { EmployeeCard, BusinessHours } from "@/lib/types";
 import { Upload, X } from "lucide-react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
@@ -373,10 +373,17 @@ export function EmployeeForm({
         titleTranslations: Object.keys(titleTranslations).length > 0 ? titleTranslations : undefined,
       } as ServiceEmployeeFormData & { titleTranslations?: Record<string, string> };
 
+      let result;
       if (employee) {
-        await updateEmployee(employee.employee_id, formData);
+        result = await updateEmployeeAction(employee.employee_id, formData);
       } else {
-        await createEmployee(companyId, formData);
+        result = await createEmployeeAction(companyId, formData);
+      }
+
+      if (!result.success) {
+        setError(result.error || t("failedToSaveEmployee"));
+        setIsLoading(false);
+        return;
       }
 
       onSuccess();

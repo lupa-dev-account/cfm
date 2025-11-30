@@ -3,6 +3,7 @@ import { locales, defaultLocale } from './i18n/request';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/lib/types/database';
+import { checkRateLimit, getClientIp } from '@/lib/utils/rate-limiter';
 
 const intlMiddleware = createMiddleware({
   // A list of all locales that are supported
@@ -70,6 +71,35 @@ export default async function middleware(request: NextRequest) {
   // If it's a public route, allow access (return i18n response)
   if (isPublicRoute) {
     return intlResponse;
+  }
+
+  // Rate limiting for authentication endpoints
+  if (pathWithoutLocale === '/signin' || pathWithoutLocale === '/signup') {
+    const clientIp = getClientIp(request);
+    const rateLimitResult = checkRateLimit(clientIp, 'auth');
+    
+    if (!rateLimitResult.allowed) {
+      const retryAfter = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+      const response = NextResponse.json(
+        { 
+          error: 'Too many requests. Please try again later.',
+          retryAfter 
+        },
+        { status: 429 }
+      );
+      response.headers.set('Retry-After', retryAfter.toString());
+      response.headers.set('X-RateLimit-Limit', '5');
+      response.headers.set('X-RateLimit-Remaining', '0');
+      response.headers.set('X-RateLimit-Reset', rateLimitResult.resetTime.toString());
+      return response;
+    }
+    
+    // Add rate limit headers to response
+    if (intlResponse) {
+      intlResponse.headers.set('X-RateLimit-Limit', '5');
+      intlResponse.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
+      intlResponse.headers.set('X-RateLimit-Reset', rateLimitResult.resetTime.toString());
+    }
   }
 
   // Protected routes require authentication

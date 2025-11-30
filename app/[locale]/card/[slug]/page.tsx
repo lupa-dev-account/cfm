@@ -12,6 +12,7 @@ import type { EmployeeWithCard } from "@/lib/types";
 import type { Database } from "@/lib/types/database";
 import { parsePhoneNumber, formatNumber } from "libphonenumber-js";
 import { translateTitle } from "@/lib/utils/title-translator";
+import { sanitizeUrl } from "@/lib/utils/url-sanitizer";
 
 import {
   FaMeta,
@@ -63,11 +64,18 @@ type ContactItemProps = {
 };
 
 const ContactItem: React.FC<ContactItemProps> = ({ icon: Icon, href, children, external }) => {
+  const sanitizedHref = sanitizeUrl(href);
+  
+  // Don't render if URL is dangerous
+  if (!sanitizedHref) {
+    return null;
+  }
+  
   return (
     <div className="flex items-center gap-3 p-4 bg-white border-2 border-green-700 rounded-xl">
       <Icon className="p-1.5 h-10 w-10 bg-green-700 text-white rounded-full flex-shrink-0" />
       <a
-        href={href}
+        href={sanitizedHref}
         className="text-black text-base font-medium hover:text-green-700 flex-1 break-all"
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
@@ -155,16 +163,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, websiteUrl }) => {
       </p>
 
       <div className="mt-auto min-h-[32px] flex items-center justify-center">
-        {websiteUrl && (
-          <a
-            href={websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
-          >
-            {t('learnMore')}
-          </a>
-        )}
+        {websiteUrl && (() => {
+          const sanitizedUrl = sanitizeUrl(websiteUrl);
+          if (!sanitizedUrl) return null;
+          return (
+            <a
+              href={sanitizedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-800 text-white px-4 py-2 rounded text-xs md:text-sm hover:bg-green-700 inline-block"
+            >
+              {t('learnMore')}
+            </a>
+          );
+        })()}
       </div>
     </div>
   );
@@ -177,16 +189,25 @@ type SocialIconProps = {
   href: string;
 };
 
-const SocialIcon: React.FC<SocialIconProps> = ({ icon: Icon, href }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="w-12 h-12 rounded-full bg-green-800 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
-  >
-    <Icon className="h-6 w-6" />
-  </a>
-);
+const SocialIcon: React.FC<SocialIconProps> = ({ icon: Icon, href }) => {
+  const sanitizedHref = sanitizeUrl(href);
+  
+  // Don't render if URL is dangerous
+  if (!sanitizedHref) {
+    return null;
+  }
+  
+  return (
+    <a
+      href={sanitizedHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="w-12 h-12 rounded-full bg-green-800 text-white flex items-center justify-center hover:bg-green-700 transition-colors"
+    >
+      <Icon className="h-6 w-6" />
+    </a>
+  );
+};
 
 
 
@@ -274,9 +295,15 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
 
   // Website
   if (contactLinks.website) {
-    vcard += `URL:${contactLinks.website}\r\n`;
+    const sanitizedWebsite = sanitizeUrl(contactLinks.website);
+    if (sanitizedWebsite) {
+      vcard += `URL:${sanitizedWebsite}\r\n`;
+    }
   } else if (company?.website_url) {
-    vcard += `URL:${company.website_url}\r\n`;
+    const sanitizedCompanyUrl = sanitizeUrl(company.website_url);
+    if (sanitizedCompanyUrl) {
+      vcard += `URL:${sanitizedCompanyUrl}\r\n`;
+    }
   }
 
   // Photo - embedded as base64 (most reliable for contact apps)
@@ -308,13 +335,22 @@ function generateVCard(card: EmployeeWithCard, photoBase64?: string, photoType?:
 
   // Social links as custom fields
   if (company?.linkedin_url) {
-    vcard += `X-SOCIALPROFILE;TYPE=linkedin:${company.linkedin_url}\r\n`;
+    const sanitizedLinkedIn = sanitizeUrl(company.linkedin_url);
+    if (sanitizedLinkedIn) {
+      vcard += `X-SOCIALPROFILE;TYPE=linkedin:${sanitizedLinkedIn}\r\n`;
+    }
   }
   if (company?.facebook_url) {
-    vcard += `X-SOCIALPROFILE;TYPE=facebook:${company.facebook_url}\r\n`;
+    const sanitizedFacebook = sanitizeUrl(company.facebook_url);
+    if (sanitizedFacebook) {
+      vcard += `X-SOCIALPROFILE;TYPE=facebook:${sanitizedFacebook}\r\n`;
+    }
   }
   if (company?.instagram_url) {
-    vcard += `X-SOCIALPROFILE;TYPE=instagram:${company.instagram_url}\r\n`;
+    const sanitizedInstagram = sanitizeUrl(company.instagram_url);
+    if (sanitizedInstagram) {
+      vcard += `X-SOCIALPROFILE;TYPE=instagram:${sanitizedInstagram}\r\n`;
+    }
   }
 
   // Card URL for reference
@@ -432,17 +468,23 @@ export default function EmployeeCardPage() {
 
           if (companyResult.error) {
             if (process.env.NODE_ENV === 'development') {
-              console.error("Failed to fetch company data:", companyResult.error);
+              if (process.env.NODE_ENV === 'development') {
+                console.error("Failed to fetch company data:", companyResult.error);
+              }
             }
           }
           if (servicesResult.error) {
             if (process.env.NODE_ENV === 'development') {
-              console.error("Failed to fetch services data:", servicesResult.error);
+              if (process.env.NODE_ENV === 'development') {
+                console.error("Failed to fetch services data:", servicesResult.error);
+              }
             }
           }
         } else {
           if (process.env.NODE_ENV === 'development') {
-            console.warn("No company_id found in user or theme data");
+            if (process.env.NODE_ENV === 'development') {
+              console.warn("No company_id found in user or theme data");
+            }
           }
         }
 
@@ -459,7 +501,9 @@ export default function EmployeeCardPage() {
         setCard(cardWithMetadata);
       } catch (err: any) {
         if (process.env.NODE_ENV === 'development') {
-          console.error("Error loading card:", err);
+          if (process.env.NODE_ENV === 'development') {
+            console.error("Error loading card:", err);
+          }
         }
         setError(err.message || "Failed to load card");
       } finally {
@@ -606,9 +650,7 @@ export default function EmployeeCardPage() {
         }
       } catch (error) {
         // If image fetch fails, we'll fall back to URL method in generateVCard
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Failed to fetch photo for vCard, falling back to URL:', error);
-        }
+        // Silently fall back to URL method - no need to log
       }
     }
 
@@ -1005,11 +1047,7 @@ export default function EmployeeCardPage() {
                 const footerTextTranslations = (company as any)?.footer_text_translations;
                 let footerText = '';
                 
-                // Debug in development
-                if (process.env.NODE_ENV === 'development' && footerTextTranslations) {
-                  console.log('Footer translations:', footerTextTranslations);
-                  console.log('Current locale:', locale);
-                }
+                // Footer text translations are handled below
                 
                 if (footerTextTranslations && typeof footerTextTranslations === 'object') {
                   // Try current locale, then lowercase version, then English, then fallback to plain footer_text

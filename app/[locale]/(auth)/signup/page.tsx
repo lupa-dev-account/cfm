@@ -28,8 +28,14 @@ export default function SignUpPage() {
   const signUpSchema = z.object({
     fullName: z.string().min(2, t('fullNameMinLength')),
     email: z.string().email(t('invalidEmail')),
-    password: z.string().min(6, t('passwordMinLength')),
-    confirmPassword: z.string().min(6, t('confirmPasswordRequired')),
+    password: z
+      .string()
+      .min(12, t('passwordMinLength') || 'Password must be at least 12 characters')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number')
+      .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+    confirmPassword: z.string().min(12, t('confirmPasswordRequired') || 'Password must be at least 12 characters'),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t('passwordsDoNotMatch'),
     path: ["confirmPassword"],
@@ -62,7 +68,13 @@ export default function SignUpPage() {
       });
 
       if (authError) {
-        setError(authError.message || "Failed to create account");
+        // Use generic error message to prevent email enumeration
+        // Don't reveal if email already exists
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+          setError("An account with this email already exists. Please sign in instead.");
+        } else {
+          setError("Failed to create account. Please try again.");
+        }
         setIsLoading(false);
         return;
       }
@@ -84,7 +96,11 @@ export default function SignUpPage() {
         } as any);
 
       if (userError) {
-        console.error("User creation error:", userError);
+        // Log error details only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error("User creation error:", userError);
+        }
+        // Use generic error message
         setError("Account created but failed to set up profile. Please contact support.");
         setIsLoading(false);
         return;
@@ -100,9 +116,7 @@ export default function SignUpPage() {
 
   const handleSocialLogin = (provider: string) => {
     // Placeholder for social login
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Sign up with ${provider}`);
-    }
+    // TODO: Implement social login
   };
 
   return (

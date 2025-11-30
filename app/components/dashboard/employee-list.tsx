@@ -17,9 +17,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Loading } from "@/components/ui/loading";
 import {
-  deleteEmployee,
-  toggleEmployeeStatus,
-} from "@/lib/services/employees";
+  deleteEmployeeAction,
+  toggleEmployeeStatusAction,
+} from "@/app/actions/employees";
 import type { EmployeeWithCard } from "@/lib/types";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
@@ -46,7 +46,11 @@ export function EmployeeList({
   const handleToggleStatus = async (employee: EmployeeWithCard) => {
     setProcessingIds((prev) => new Set(prev).add(employee.id));
     try {
-      await toggleEmployeeStatus(employee.employee_id, !employee.is_active);
+      const result = await toggleEmployeeStatusAction(employee.employee_id, !employee.is_active);
+      if (!result.success) {
+        alert(`${t('failedToUpdateStatus')}: ${result.error}`);
+        return;
+      }
       onRefresh();
     } catch (error: any) {
       alert(`${t('failedToUpdateStatus')}: ${error.message}`);
@@ -69,7 +73,11 @@ export function EmployeeList({
 
     setProcessingIds((prev) => new Set(prev).add(employeeToDelete.id));
     try {
-      await deleteEmployee(employeeToDelete.employee_id);
+      const result = await deleteEmployeeAction(employeeToDelete.employee_id);
+      if (!result.success) {
+        alert(`${t('failedToDeleteEmployee')}: ${result.error}`);
+        return;
+      }
       onRefresh();
       setEmployeeToDelete(null);
     } catch (error: any) {
